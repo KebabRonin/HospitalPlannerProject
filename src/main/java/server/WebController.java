@@ -16,25 +16,25 @@ public class WebController {
     @GetMapping("/")
     @ResponseBody
     public byte[] index() {
-        return WebController.load_file("landing.html");
+        return WebController.load_file(filesPath + "landing.html");
     }
 
     @GetMapping("/{*file_path}")
     @ResponseBody
     public byte[] get(@PathVariable(value="file_path") String filePath) {
         System.out.println(filePath);
-        return WebController.load_file(filePath);
+        return WebController.load_file(filesPath + filePath);
     }
 
     @GetMapping("/resources/{*file_path}")
     @ResponseBody
     public byte[] get_resource(@PathVariable(value="file_path") String filePath) {
         System.out.println(filePath);
-        return WebController.load_file(filePath);
+        return WebController.load_file(filesPath + filePath);
     }
 
     public static byte[] load_file(String filePath) {
-        Path file = Paths.get(filesPath + filePath);
+        Path file = Paths.get(filePath);
         try {
             return Files.readAllBytes(file);
         } catch(IOException e) {
