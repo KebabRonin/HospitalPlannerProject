@@ -3,48 +3,42 @@ package jpa;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.print.Doc;
 
 public class Main {
     public static void testJPA(){
         EntityManagerFactory emf =
                 Persistence.createEntityManagerFactory("ExamplePU");
         EntityManager em = emf.createEntityManager();
-//        Doctor d = new Doctor();
-//        d.setId(8);d.setName("dsadas");d.setPrenume("dassadsaf");
-//        Specializare s = new Specializare();
-//        s.setId(10);s.setDenumire("sdadsadsa");
-        em.getTransaction().begin();
-//        em.persist(d);
-//        em.persist(s);
-        Cabinet cabinet = new Cabinet("C210");
-        em.persist(cabinet);
 
-        Cabinet c = (Cabinet) em.createQuery(
-                        "select e from Cabinet e where e.denumire='C210'")
+        em.getTransaction().begin();
+        Pacient pacient = new Pacient("The","Beatles");
+        em.persist(pacient);
+
+        Pacient a = (Pacient) em.createQuery(
+                        "select e from Pacient e where e.prenume='Beatles'")
                 .getSingleResult();
-        System.out.println(c.getDenumire());
+        a.setPrenume("The Beatles");
         em.getTransaction().commit();
         em.close();
         emf.close();
     }
     public static void main(String[] args) {
-        //testJPA();
+        testJPA();
 //        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("ExamplePU");
 //
 //        EntityManager entityManager = entityManagerFactory.createEntityManager();
 //
-//        Cabinet cabinet = new Cabinet("dsadsdasd");
+//        Pacient pacient = new Pacient("Mircea","Aldanu", "20/10/2002", "Galati,Galati", "0757650548", "numanumaiei@mama.marti","parola");
 //
-//        CabinetRepository cabinetRepository = new CabinetRepository(entityManager);
+//        PacientRepository pacientRepository = new PacientRepository(entityManager);
 //
 //        entityManager.getTransaction().begin();
-//        cabinetRepository.create(cabinet);
+//        pacientRepository.create(pacient);
 //        entityManager.getTransaction().commit();
 //
-//        Cabinet cabinet1 = cabinetRepository.findById(cabinet.getId());
+//        Pacient pacient1 = pacientRepository.findById(pacient.getId());
 //
-//        System.out.println(cabinet1.getDenumire());
+//        System.out.println(pacient1.getEmail());
 //        entityManager.close();
 //        entityManagerFactory.close();
     }

@@ -20,18 +20,31 @@ public class Pacient extends AbstractEntity{
     private String nume;
     @Column(name = "prenume")
     private String prenume;
+    @Column(name = "data_nastere")
+    private String data_nastere;
     @Column(name = "nr_telefon")
-    private Integer nr_telefon;
+    private String nr_telefon;
     @Column(name = "adresa")
     private String adresa;
     @Column(name = "email")
     private String email;
-
+    @Column(name = "parola")
+    private String parola;
 
     public Pacient(){}
-    public Pacient(String nume,String prenume) {
+    public Pacient(String nume, String prenume){
         this.nume = nume;
         this.prenume = prenume;
+    }
+
+    public Pacient(String nume,String prenume,String data_nastere, String nr_telefon, String adresa, String email, String parola) {
+        this.nume = nume;
+        this.prenume = prenume;
+        this.data_nastere = data_nastere;
+        this.nr_telefon = nr_telefon;
+        this.adresa = adresa;
+        this.email = email;
+        this.parola = parola;
     }
 
     public void setName(String name) {
@@ -60,14 +73,6 @@ public class Pacient extends AbstractEntity{
 
     public void setPrenume(String prenume) {
         this.prenume = prenume;
-    }
-
-    public Integer getNr_telefon() {
-        return nr_telefon;
-    }
-
-    public void setNr_telefon(Integer nr_telefon) {
-        this.nr_telefon = nr_telefon;
     }
 
     public String getAdresa() {

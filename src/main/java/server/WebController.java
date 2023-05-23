@@ -1,17 +1,28 @@
 package server;
 
+import jdbc.PacientDAO;
+import jdbc.Pacient;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.MediaType;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.ResultSet;
 
 @Controller
 public class WebController {
+    boolean connected = false;
+    int userId;
     private static String filesPath = "src/main/java/interfata/";
     @GetMapping("/")
     @ResponseBody
@@ -43,4 +54,65 @@ public class WebController {
             //return null;
         }
     }
+
+    @GetMapping(value = "/user-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Pacient getUserInfo() {
+        try {
+            var pacient = new PacientDAO();
+            return pacient.findById(userId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve user information.");
+        }
+    }
+
+    @PostMapping("/login")
+    @ResponseBody
+    public String login(@RequestParam("email") String email_login,
+                         @RequestParam("password") String password) {
+        try {
+            var pacient = new PacientDAO();
+            int id = pacient.findByEmail(email_login);
+            if(id == 0){
+                return "Email doesn't exist.";
+            }
+            if(!password.equals(pacient.findPasswordById(id))){
+                System.out.println(password + " != " + pacient.findPasswordById(id));
+                return "Password incorrect.";
+            }
+            connected = true;
+            userId = id;
+            return "Log in successful!";
+        }  catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to log in.";
+        }
+    }
+
+    @PostMapping("/signup")
+    @ResponseBody
+    public String signUp(@RequestParam("firstName") String firstName,
+                         @RequestParam("lastName") String lastName,
+                         @RequestParam("date") String date,
+                         @RequestParam("address") String address,
+                         @RequestParam("phone") String phone,
+                         @RequestParam("email") String email,
+                         @RequestParam("password") String password) {
+        try {
+            var pacient = new PacientDAO();
+            int id = pacient.findByEmail(email);
+            if(id != 0){
+                return "Failed to sign up.";
+            }
+            pacient.create(firstName, lastName,date,address,phone,email,password);
+            connected = true;
+            userId = pacient.findByEmail(email);
+            return "Sign up successful!";
+        }  catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to sign up.";
+        }
+    }
+
 }

@@ -19,28 +19,30 @@
         <section class="login_continut">
           <h2 class="login_text">Log in</h2>
           <div class="login__Username">
-            <form id="formular_login" class="login_formular">
-              <label for="username" class="username_text"
+            <form id="formular_login" class="login_formular" action="/login" method="post">
+              <label for="email" class="username_text"
               >Email
               </label>
               <div class="login_caseta">
                 <input
                         type="text"
-                        id="username"
+                        id="email"
                         class="caseta"
                         dir="auto"
-                        name="username"
+                        name="email"
                         aria-required="true"
-                        autocomplete="username"
-                        data-functional-selector="username-input-field__input"
+                        autocomplete="email"
+                        data-functional-selector="email-input-field__input"
                         value="" required
                 />
+                <p id="email-error-message"></p>
               </div>
               <label for="password" class="password_text">Password</label>
               <div class="password_caseta">
                 <input
                         type="password"
                         id="password"
+                        name="password"
                         class="sc-fePcYi ePKGQV sc-hRYTmC kIeJEV styles__PasswordField-sc-12i1x7w-3 gcaSJR"
                         dir="auto"
                         aria-required="true"
@@ -48,9 +50,11 @@
                         data-functional-selector="password-input-field__input"
                         value="" required
                 />
+                <p id="password-error-message"></p>
                 <div class="sc-hFNyKf hIINCz">
                   <button
                           type="button"
+                          id="show-password-btn"
                           aria-label="Show password as plain text"
                           draggable="false"
                           class="sc-dERsgg jhEikp"
@@ -85,17 +89,27 @@
                   </button>
                 </div>
               </div>
-              <form id="login-form" action="admin/all_forms.html">
-                <button
-                        id="login-submit-btn"
-                        class="login_button"
-                        type="button"
-                        data-functional-selector="sign-in-button"
-                        onclick="window.location.href='admin.html'"
-                >
-                  Log in
-                </button>
-              </form>
+              <script>
+                const passwordInput = document.getElementById('password');
+                const showPasswordButton = document.getElementById('show-password-btn');
+              
+                showPasswordButton.addEventListener('click', function () {
+                  if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                  } else {
+                    passwordInput.type = 'password';
+                  }
+                });
+              </script>
+              <button
+                      id="login-submit-btn"
+                      class="login_button"
+                      type="submit"
+                      data-functional-selector="sign-in-button"
+              >
+                Log in
+              </button>
+              <p id="login-error-msg"></p>
             </form>
           </div>
           <div class="or">
@@ -119,5 +133,6 @@
     </div>
   </div>
 </main>
+<script src="login_script.js"></script>
 </body>
 </html>

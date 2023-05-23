@@ -26,7 +26,7 @@ public class PacientRepository extends DataRepository<Pacient, Integer>{
         return entityManagerFactory.createEntityManager();
     }
 
-    public void create(Doctor pacient) {
+    public void create(Pacient pacient) {
         EntityManager entityManager = getEntityManager();
         try {
             entityManager.getTransaction().begin();

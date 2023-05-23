@@ -1456,11 +1456,7 @@ main.page .video-box.video-box--remove-box .video-box--group.video-box--remove-b
     width: 100%;
     background-color: transparent;
 }
-@media (min-width: 600px)
-.duqFeW {
-    -webkit-box-pack: center;
-    justify-content: center;
-}
+
 .duqFeW {
     display: flex;
     -webkit-box-align: center;

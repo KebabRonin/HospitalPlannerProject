@@ -31,14 +31,16 @@
                 <input
                         type="text"
                         id="username"
-                        name = "username"
+                        name = "firstName"
                         class="caseta"
                         dir="auto"
                         aria-required="true"
                         autocomplete="username"
                         data-functional-selector="username-input-field__input"
+                        placeholder="ex: George"
                         value="" required
                 />
+                <p id="firstName-error-message"></p>
               </div>
               <label
                       for="username"
@@ -48,21 +50,24 @@
               <div class="signup_caseta">
                 <input
                         type="text"
-                        name = "username"
+                        name = "lastName"
                         class="caseta"
                         dir="auto"
                         aria-required="true"
                         autocomplete="username"
                         data-functional-selector="username-input-field__input"
+                        placeholder="ex: Popescu"
                         value="" required
                 />
+                <p id="lastName-error-message"></p>
               </div>
               <label
                       for="password"
                       class="password_text"
               >Date Of Birth</label
               >
-              <input type="date" id="date" class="date_caseta" required>
+              <input type="date" name= "date" id="date" class="date_caseta" required>
+              <p id="date-error-message"></p>
               <label
                       for="password"
                       class="password_text"
@@ -73,12 +78,14 @@
                         type="text"
                         class="caseta"
                         dir="auto"
-                        name="email"
+                        name="address"
                         aria-required="true"
                         autocomplete="username"
                         data-functional-selector="email-input-field__input"
+                        placeholder="ex: Iasi,Iasi"
                         value="" required
                 />
+                <p id="address-error-message"></p>
               </div>
               <label
                       for="password"
@@ -86,9 +93,8 @@
               >Phone Number</label
               >
               <div class="signup_caseta">
-                <input type="tel" id="phone" name="phone" class="phone_caseta"
-                       pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
-                       required>
+                <input type="tel" id="phone" name="phone" class="phone_caseta" pattern="^07\d{8}$" placeholder="ex: 0765432109" required>
+                <p id="phone-error-message"></p>
               </div>
               <label
                       for="password"
@@ -105,8 +111,10 @@
                         aria-required="true"
                         autocomplete="username"
                         data-functional-selector="email-input-field__input"
+                        placeholder="ex: me@yahoo.com"
                         value="" required
                 />
+                <p id="email-error-message"></p>
               </div>
               <label
                       for="password"
@@ -125,9 +133,11 @@
                         data-functional-selector="password-input-field__input"
                         value="" required
                 />
+                <p id="password-error-message"></p>
                 <div class="view_password">
                   <button
                           type="button"
+                          id="show-password-btn"
                           aria-label="Show password as plain text"
                           draggable="false"
                           class="view_password_button"
@@ -162,19 +172,22 @@
                   </button>
                 </div>
               </div>
+              <script>
+                const passwordInput = document.getElementById('password');
+                const showPasswordButton = document.getElementById('show-password-btn');
+              
+                showPasswordButton.addEventListener('click', function () {
+                  if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                  } else {
+                    passwordInput.type = 'password';
+                  }
+                });
+              </script>
               <div class="signup_button_section">
-                <form id="login-form" action="/signup" method="post">
-                  <button
-                          id="login-submit-btn"
-                          class="login_button"
-                          type="submit"
-                          data-functional-selector="sign-in-button"
-                          onclick="window.location.href='admin.html'"
-                  >
-                    Sign up
-                  </button>
-                </form>
-
+                <button id="signup-submit-btn" class="login_button" type="submit" data-functional-selector="sign-up-button">
+                  Sign up
+                </button>
               </div>
             </form>
           </div>
@@ -192,5 +205,6 @@
     </div>
   </div>
 </main>
+<script src="signup_script.js"></script>
 </body>
 </html>
