@@ -1,7 +1,6 @@
 package server;
 
-import jdbc.PacientDAO;
-import jdbc.Pacient;
+import jdbc.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -13,11 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.ResultSet;
+import java.util.List;
 
 @Controller
 public class WebController {
@@ -64,6 +60,29 @@ public class WebController {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve user information.");
+        }
+    }
+
+    @GetMapping(value = "/api/doctors", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String get_doctors() {
+        try {
+            var doctori = new DoctorDAO();
+            return doctori.findAll().toString();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve doctor information.");
+        }
+    }
+
+    @GetMapping(value = "/your_appointments", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Programare> getUserAppointments(@CookieValue("userId") int userId) {
+        try {
+            return new ProgramareDAO().findAllOfPatientId(userId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve doctor information.");
         }
     }
 
