@@ -1,10 +1,9 @@
 
 var profileInfoElement = document.getElementById('profile-info');
-
-fetch('/user-info')
+console.log(document.cookie.valueOf('userId').split('=')[1]);
+fetch('/user-info/'.concat(document.cookie.valueOf('userId').split('=')[1]))
   .then(response => response.json())
   .then(data => {
-    console.log(data.nume + " " + data.prenume + " " + data.adresa + " " + data.email)
     profileInfoElement.innerHTML = `
       <p>Nume: ${data.nume}</p>
       <p>Prenume: ${data.prenume}</p>
