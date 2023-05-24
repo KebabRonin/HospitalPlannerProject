@@ -1,34 +1,24 @@
-package jpa;
+package jdbc;
 
-import javax.persistence.*;
-
-@Entity
-@Table(name = "doctori")
-@NamedQueries({
-        @NamedQuery(name = "Doctor.findAll",
-                query = "select e from Doctor e order by e.nume"),
-        @NamedQuery(name = "Doctor.findByName",
-                query = "SELECT p FROM Doctor p WHERE p.nume LIKE :nume")
-
-})
-public class Doctor extends AbstractEntity{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "id")
-    @Column(name = "id")
+public class Doctor {
     private int id;
-    @Column(name = "nume")
     private String nume;
-    @Column(name = "prenume")
     private String prenume;
-    @Column(name = "nr_telefon")
-    private Integer nr_telefon;
-    @Column(name = "email")
+    private String nr_telefon;
     private String email;
 
     public Doctor(){}
     public Doctor(String nume, String prenume) {
         this.nume = nume;
         this.prenume = prenume;
+    }
+
+    public Doctor(int id, String nume, String prenume, String nr_telefon, String email) {
+        this.id = id;
+        this.nume = nume;
+        this.prenume = prenume;
+        this.nr_telefon = nr_telefon;
+        this.email = email;
     }
 
     public void setName(String name) {
@@ -59,11 +49,11 @@ public class Doctor extends AbstractEntity{
         this.prenume = prenume;
     }
 
-    public Integer getNr_telefon() {
+    public String getNr_telefon() {
         return nr_telefon;
     }
 
-    public void setNr_telefon(Integer nr_telefon) {
+    public void setNr_telefon(String nr_telefon) {
         this.nr_telefon = nr_telefon;
     }
 

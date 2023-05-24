@@ -19,15 +19,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 @Controller
 public class WebController {
@@ -109,6 +107,28 @@ public class WebController {
     }
 
 
+    @GetMapping(value = "/doctors", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String get_doctors() {
+        try {
+            var doctori = new DoctorDAO();
+            return doctori.findAll().toString();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve doctor information.");
+        }
+    }
+
+    @GetMapping(value = "/your_appointments", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Programare> getUserAppointments(@CookieValue("userId") int userId) {
+        try {
+            return new ProgramareDAO().findAllOfPatientId(userId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve doctor information.");
+        }
+    }
 
     @PostMapping("/login")
     @ResponseBody

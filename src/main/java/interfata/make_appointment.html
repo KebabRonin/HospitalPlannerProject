@@ -2,8 +2,10 @@
 <head>
     <title>Make Appointment</title>
     <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link rel="stylesheet" type="text/css" href="calendar.css" />
     <link rel="stylesheet" type="text/css" href="make_appointment.css" />
     <link rel="icon" href="hospitalplanner-website-favicon-color.png" />
+
 </head>
 <body>
 <div class="landing-section-header">
@@ -59,6 +61,7 @@
     <div class="container">
         <h2>Make an Appointment</h2>
         <form>
+            <div id="calendar"></div>
             <label for="doctor">Preferred Doctor:</label>
             <select id="doctor" name="doctor">
                 <option value="">Any Doctor</option>
@@ -77,6 +80,6 @@
             <input type="submit" value="Submit">
         </form>
     </div>
-</div>
+</div><script src="calendar.js"></script>
 </body>
 </html>
