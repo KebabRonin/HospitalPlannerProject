@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HospitalPlanner</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link rel="stylesheet" type="text/css" href="doctori_cabinete.css" />
+    <link rel="icon" href="hospitalplanner-website-favicon-color.png" />
+  </head>
+  <body>
+    <div class="landing-section-header">
+      <header id="landing-header-id" class="landing-header" role="banner">
+        <div class="landing-header-elements">
+          <a href="landing.html" class="logo-link">
+            <img
+              alt=""
+              src="hospitalplanner-high-resolution-color-logo.png"
+              class="logo_landing"
+            />
+          </a>
+          <nav
+            id="landing-header_menu"
+            class="landing-header_menu landing-header_menu--microsite"
+            aria-label="Navigation"
+            data-translated="1"
+          >
+            <ul
+              id="menu-landing-header_menu-left"
+              class="landing-header_menu-left"
+            >
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
+                <a href="doctori.html" itemprop="url"
+                  ><span class="menu-item-text">Doctors</span></a
+                >
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
+                <span class="explore-button">Cabinets</span>
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
+                <a href="appointments.html" itemprop="url"
+                  ><span class="menu-item-text">Appointments</span></a
+                >
+              </li>
+            </ul>
+            <ul
+              id="menu-homepage-menu-right"
+              class="landing-header_menu-right first-in-focus"
+            >
+              <li class="landing-button logout_button">
+                <a href="landing.html" itemprop="url">Log out</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+    </div>
+    <main id="main" class="page">
+      <div class="content" style="position: absolute;
+      height: 91%;">
+        <div id="cabinet-list"></div>
+
+        <div id="text-and-button" class="centered-text">
+          <p id="no-cabinets-message">No cabinets at the moment.</p>
+        </div>
+
+        <div id="add-cabinet-button">
+          <button id="add-cabinet-button" onclick="showCabinetForm()">
+            Add cabinet
+          </button>
+        </div>
+
+        <div id="cabinet-form" class="cabinet-form">
+          <h2>Add a cabinet</h2>
+          <form
+            id="add-cabinet-form"
+            onsubmit="event.preventDefault(); addCabinet();"
+          >
+            <div class="form-group">
+              <label for="cabinet-name">Cabinet Name</label>
+              <input
+                type="text"
+                id="cabinet-name"
+                name="cabinet-name"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="cabinet-floor">Floor</label>
+              <input type="number" id="cabinet-floor" name="floor" required />
+            </div>
+            <div class="form-group">
+              <label for="cabinet-picture">Picture</label>
+              <input
+                type="file"
+                id="cabinet-picture"
+                name="cabinet-picture"
+                accept="image/*"
+                onchange="handleFileInputChange(this)"
+                required
+              />
+              <label for="cabinet-picture" class="file-input-label"
+                >Choose File</label
+              >
+              <span id="file-name" class="file-name"></span>
+            </div>
+            <button type="submit">Add</button>
+          </form>
+        </div>
+      </div>
+    </main>
+    <script src="cabinete.js"></script>
+  </body>
+</html>

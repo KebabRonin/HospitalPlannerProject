@@ -1,14 +1,20 @@
 package server;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import jdbc.Cabinet;
+import jdbc.CabinetDAO;
 import jdbc.PacientDAO;
 import jdbc.Pacient;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.MediaType;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,10 +24,16 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
 public class WebController {
-    boolean connected = false;
+    String administrator_username = "admin";
+    String administrator_password = "admin";
+    private static Map<Integer, Pacient> connectedUsers = new ConcurrentHashMap<>();
     int userId;
     private static String filesPath = "src/main/java/interfata/";
     @GetMapping("/")
@@ -55,22 +67,53 @@ public class WebController {
         }
     }
 
-    @GetMapping(value = "/user-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/cabinete-info", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Pacient getUserInfo() {
+    public List<Cabinet> getCabinetsInfo() throws SQLException {
+        var cabinet = new CabinetDAO();
+        return cabinet.getAllCabinets();
+    }
+
+    @GetMapping(value = "/user-info/{uid}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Pacient getUserInfo(@PathVariable("uid") String uid) {
+        int userId = Integer.parseInt(uid);
+        return connectedUsers.get(userId);
+    }
+
+    @PostMapping("/add-cabinet")
+    @ResponseBody
+    public String addCabinet(@RequestParam("cabinet-name") String cabinetName,
+                             @RequestParam("floor") Integer floor,
+                             @RequestParam("cabinet-picture") MultipartFile cabinetPicture) {
         try {
-            var pacient = new PacientDAO();
-            return pacient.findById(userId);
+            var cabinet = new CabinetDAO();
+            if (cabinet.findByName(cabinetName) != 0) {
+                return "Cabinet already exists.";
+            }
+            String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
+            String fileName = cabinetPicture.getOriginalFilename();
+            String filePath = folderPath + fileName;
+
+            cabinetPicture.transferTo(new File(filePath));
+
+            cabinet.create(cabinetName, filePath, floor);
+            return "Cabinet added successfully!";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Failed to upload the file.";
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve user information.");
+            return "Failed to add the cabinet.";
         }
     }
+
+
 
     @PostMapping("/login")
     @ResponseBody
     public String login(@RequestParam("email") String email_login,
-                         @RequestParam("password") String password) {
+                         @RequestParam("password") String password, HttpServletResponse response) {
         try {
             var pacient = new PacientDAO();
             int id = pacient.findByEmail(email_login);
@@ -81,13 +124,31 @@ public class WebController {
                 System.out.println(password + " != " + pacient.findPasswordById(id));
                 return "Password incorrect.";
             }
-            connected = true;
+            connectedUsers.put(id, pacient.findById(id));
             userId = id;
+            Cookie cookie = new Cookie("userId", Integer.toString(id));
+            response.addCookie(cookie);
             return "Log in successful!";
         }  catch (SQLException e) {
             e.printStackTrace();
             return "Failed to log in.";
         }
+    }
+
+    @PostMapping("/login-administrator")
+    @ResponseBody
+    public String loginAdministrator(@RequestParam("email") String email_administrator,
+                        @RequestParam("password") String password) {
+//        if(connectedUsers.get(0) != null){
+//            return "Admin already connected.";
+//        }
+        if(!email_administrator.equals(administrator_username)){
+            return "Incorrect.";
+        }
+        if(!password.equals(administrator_password)){
+            return "Incorrect.";
+        }
+        return "Log in successful!";
     }
 
     @PostMapping("/signup")
@@ -98,7 +159,7 @@ public class WebController {
                          @RequestParam("address") String address,
                          @RequestParam("phone") String phone,
                          @RequestParam("email") String email,
-                         @RequestParam("password") String password) {
+                         @RequestParam("password") String password, HttpServletResponse response) {
         try {
             var pacient = new PacientDAO();
             int id = pacient.findByEmail(email);
@@ -106,8 +167,10 @@ public class WebController {
                 return "Failed to sign up.";
             }
             pacient.create(firstName, lastName,date,address,phone,email,password);
-            connected = true;
             userId = pacient.findByEmail(email);
+            connectedUsers.put(userId, pacient.findById(userId));
+            Cookie cookie = new Cookie("userId", Integer.toString(userId));
+            response.addCookie(cookie);
             return "Sign up successful!";
         }  catch (SQLException e) {
             e.printStackTrace();
