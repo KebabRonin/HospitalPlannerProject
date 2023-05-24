@@ -22,13 +22,12 @@ public class ProgramareDAO {
         Connection con = Database.getConnection();
         try (Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "select id, id_pacient, id_doctor, id_cabinet, data_programare from programari where id_pacient='" + id_pacient + "'")) {
+                     "select id, id_pacient, id_doctor, data_programare from programari where id_pacient='" + id_pacient + "'")) {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int id_doctor = rs.getInt("id_doctor");
-                int id_cabinet = rs.getInt("id_cabinet");
                 Date data_programare = rs.getDate("data_programare");
-                rez.add(new Programare(id,id_pacient, id_doctor, id_cabinet, data_programare));
+                rez.add(new Programare(id,id_pacient, id_doctor, data_programare));
             }
             return rez;
         }

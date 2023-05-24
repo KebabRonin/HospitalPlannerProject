@@ -2,10 +2,7 @@ package server;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jdbc.Cabinet;
-import jdbc.CabinetDAO;
-import jdbc.PacientDAO;
-import jdbc.Pacient;
+import jdbc.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -89,7 +86,6 @@ public class WebController {
             if (cabinet.findByName(cabinetName) != 0) {
                 return "Cabinet already exists.";
             }
-            String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
             String fileName = cabinetPicture.getOriginalFilename();
             String filePath = folderPath + fileName;
 
