@@ -9,7 +9,7 @@ import java.sql.SQLException;
 public class Database {
     private static final String URL =
             "jdbc:postgresql://localhost:5432/HospitalPlanner";
-    private static final String USER = "postgresJava";
+    private static final String USER = "postgres";
     private static final String PASSWORD = "s2receptor";
     private static HikariDataSource dataSource = null;
 
