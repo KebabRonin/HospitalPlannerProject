@@ -1,11 +1,16 @@
 package jdbc;
 
+import java.util.List;
+
 public class Doctor {
     private int id;
     private String nume;
     private String prenume;
     private String nr_telefon;
     private String email;
+    private String image;
+    private List<Specializare> specializari;
+    private List<String> cabinete;
 
     public Doctor(){}
     public Doctor(String nume, String prenume) {
@@ -13,12 +18,15 @@ public class Doctor {
         this.prenume = prenume;
     }
 
-    public Doctor(int id, String nume, String prenume, String nr_telefon, String email) {
+    public Doctor(int id, String nume, String prenume, String nr_telefon, String email, String image, List<Specializare> specializari, List<String> cabinete) {
         this.id = id;
         this.nume = nume;
         this.prenume = prenume;
         this.nr_telefon = nr_telefon;
         this.email = email;
+        this.image = image;
+        this.specializari = specializari;
+        this.cabinete = cabinete;
     }
 
     public void setName(String name) {
@@ -65,6 +73,28 @@ public class Doctor {
         this.email = email;
     }
 
+    public String getImage() {
+        return image;
+    }
 
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public List<Specializare> getSpecializari() {
+        return specializari;
+    }
+
+    public void setSpecializari(List<Specializare> specializari) {
+        this.specializari = specializari;
+    }
+
+    public List<String> getCabinete() {
+        return cabinete;
+    }
+
+    public void setCabinete(List<String> cabinete) {
+        this.cabinete = cabinete;
+    }
 }
 

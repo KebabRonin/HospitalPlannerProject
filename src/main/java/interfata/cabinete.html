@@ -3,7 +3,7 @@
   <head>
     <title>HospitalPlanner</title>
     <link rel="stylesheet" type="text/css" href="styles.css" />
-    <link rel="stylesheet" type="text/css" href="doctori_cabinete.css" />
+    <link rel="stylesheet" type="text/css" href="cabinete.css" />
     <link rel="icon" href="hospitalplanner-website-favicon-color.png" />
   </head>
   <body>
@@ -31,6 +31,14 @@
                 id="menu-item-92362"
                 class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
               >
+                <a href="appointments.html" itemprop="url"
+                  ><span class="menu-item-text">Appointments</span></a
+                >
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
                 <a href="doctori.html" itemprop="url"
                   ><span class="menu-item-text">Doctors</span></a
                 >
@@ -40,14 +48,6 @@
                 class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
               >
                 <span class="explore-button">Cabinets</span>
-              </li>
-              <li
-                id="menu-item-92362"
-                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
-              >
-                <a href="appointments.html" itemprop="url"
-                  ><span class="menu-item-text">Appointments</span></a
-                >
               </li>
             </ul>
             <ul
@@ -65,6 +65,7 @@
     <main id="main" class="page">
       <div class="content" style="position: absolute;
       height: 91%;">
+        <h1 id="cabinets-title">Cabinets</h1>
         <div id="cabinet-list"></div>
 
         <div id="text-and-button" class="centered-text">
@@ -111,7 +112,10 @@
               >
               <span id="file-name" class="file-name"></span>
             </div>
-            <button type="submit">Add</button>
+            <div class="form-group">
+              <button class="back-btn" type="button" onclick="goBack()">Back</button>
+              <button class="add-btn" type="submit">Add</button>
+            </div>
           </form>
         </div>
       </div>

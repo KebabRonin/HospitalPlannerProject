@@ -1,43 +1,27 @@
 package jdbc;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
-public class ProgramareDAO {
-    public void create(int id, int id_pacient, int id_doctor, int id_cabinet, Date data_programare) throws SQLException {
+import java.sql.*;
+
+public class ProgramDoctorDAO {
+    public void create(Integer id_doctor, Integer id_cabinet, String program) throws SQLException {
         Connection con = Database.getConnection();
         try (PreparedStatement pstmt = con.prepareStatement(
-                "insert into programari (id_pacient, id_doctor, id_cabinet, data_programare) values (?,?,?,?,?)")) {
-            pstmt.setInt(1,id_pacient);
+                "insert into program_doctori (id, id_doctor, id_cabinet, program) values (?,?,?,?)")) {
+            pstmt.setInt(1,idMax() + 1);
             pstmt.setInt(2,id_doctor);
-            pstmt.setDate(3,data_programare);
+            pstmt.setInt(3,id_cabinet);
+            pstmt.setString(4,program);
 
             pstmt.executeUpdate();
         }
     }
-    public List<Programare> findAllOfPatientId(int id_pacient) throws SQLException {
-        List<Programare> rez = new ArrayList<>();
-        Connection con = Database.getConnection();
-        try (Statement stmt = con.createStatement();
-             ResultSet rs = stmt.executeQuery(
-                     "select id, id_pacient, id_doctor, data_programare from programari where id_pacient='" + id_pacient + "'")) {
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                int id_doctor = rs.getInt("id_doctor");
-                Date data_programare = rs.getDate("data_programare");
-                rez.add(new Programare(id,id_pacient, id_doctor, data_programare));
-            }
-            return rez;
-        }
-    }
-
     public int idMax() throws SQLException {
         Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
 
         int var4;
         try {
-            ResultSet rs = stmt.executeQuery("select max(id) from programari");
+            ResultSet rs = stmt.executeQuery("select max(id) from program_doctori");
 
             try {
                 var4 = rs.next() ? rs.getInt(1) : null;
@@ -74,4 +58,5 @@ public class ProgramareDAO {
 
         return var4;
     }
+
 }

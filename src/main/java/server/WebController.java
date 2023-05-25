@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.MediaType;
 
 
+import javax.print.Doc;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -69,6 +70,21 @@ public class WebController {
         return cabinet.getAllCabinets();
     }
 
+    @GetMapping(value = "/specializari-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Specializare> getSpecializariInfo() throws SQLException {
+        var specializare = new SpecializareDAO();
+        return specializare.getAllSpecializari();
+    }
+
+    @GetMapping(value = "/doctors-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Doctor> getDoctorsInfo() throws SQLException {
+        var doctor = new DoctorDAO();
+        var doctors = doctor.findAll();
+        return doctors;
+    }
+
     @GetMapping(value = "/user-info/{uid}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Pacient getUserInfo(@PathVariable("uid") String uid) {
@@ -87,6 +103,7 @@ public class WebController {
                 return "Cabinet already exists.";
             }
             String fileName = cabinetPicture.getOriginalFilename();
+            String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
             String filePath = folderPath + fileName;
 
             cabinetPicture.transferTo(new File(filePath));
@@ -99,6 +116,46 @@ public class WebController {
         } catch (SQLException e) {
             e.printStackTrace();
             return "Failed to add the cabinet.";
+        }
+    }
+
+    @PostMapping("/add-doctor")
+    @ResponseBody
+    public String addDoctor(@RequestParam("first-name") String firstName,
+                            @RequestParam("last-name") String lastName,
+                            @RequestParam("specialization") Integer specialization,
+                            @RequestParam("cabinet") Integer cabinet,
+                            @RequestParam("schedule") String schedule,
+                            @RequestParam("phone") String phone,
+                            @RequestParam("email") String email,
+                            @RequestParam("image") MultipartFile image) {
+        try {
+            var doctor = new DoctorDAO();
+            if (doctor.findByEmail(email) != 0) {
+                return "Doctor already exists.";
+            }
+            String fileName = image.getOriginalFilename();
+            String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
+            String filePath = folderPath + fileName;
+
+            image.transferTo(new File(filePath));
+
+            doctor.create(firstName,lastName,phone,email,filePath);
+            int id_doctor = doctor.findByEmail(email);
+
+            var doctorSpecializare = new DoctoriSpecializariDAO();
+            doctorSpecializare.create(id_doctor, specialization);
+
+            var programDoctor = new ProgramDoctorDAO();
+            programDoctor.create(id_doctor,cabinet,schedule);
+
+            return "Doctor added successfully!";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Failed to upload the file.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to add the doctor.";
         }
     }
 

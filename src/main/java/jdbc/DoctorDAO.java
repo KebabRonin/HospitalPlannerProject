@@ -5,15 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DoctorDAO {
-    public void create(String nume, String prenume, String nr_telefon, String email) throws SQLException {
+    public void create(String nume, String prenume, String nr_telefon, String email, String image) throws SQLException {
         Connection con = Database.getConnection();
         try (PreparedStatement pstmt = con.prepareStatement(
-                "insert into doctori (id,nume,prenume,nr_telefon,email) values (?,?,?,?,?)")) {
+                "insert into doctori (id,nume,prenume,nr_telefon,email,image) values (?,?,?,?,?,?)")) {
             pstmt.setInt(1,this.idMax() + 1);
             pstmt.setString(2, nume);
             pstmt.setString(3, prenume);
             pstmt.setString(4, nr_telefon);
             pstmt.setString(5, email);
+            pstmt.setString(6, image);
 
             pstmt.executeUpdate();
         }
@@ -32,14 +33,22 @@ public class DoctorDAO {
         Connection con = Database.getConnection();
         try (Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "select id, nume, prenume, email, nr_telefon from doctori")) {
+                     "select id, nume, prenume, email, nr_telefon, image from doctori")) {
             while(rs.next()) {
                 int id = rs.getInt("id");
                 String nume = rs.getString("nume");
                 String prenume = rs.getString("prenume");
                 String nr_telefon = rs.getString("nr_telefon");
                 String email = rs.getString("email");
-                rez.add(new Doctor(id,nume, prenume, nr_telefon, email));
+                String image = rs.getString("image");
+
+                var specializare = new SpecializareDAO();
+                var specializari = specializare.findSpecializariByDoctorId(id);
+
+                var cabinet = new CabinetDAO();
+                var cabinete = cabinet.findCabineteByDoctorId(id);
+
+                rez.add(new Doctor(id,nume, prenume, nr_telefon, email, image, specializari, cabinete));
             }
         }
         return rez;
@@ -49,13 +58,21 @@ public class DoctorDAO {
         Connection con = Database.getConnection();
         try (Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "select id, nume, prenume, nr_telefon, email from doctori where id='" + id + "'")) {
+                     "select id, nume, prenume, nr_telefon, email, image from doctori where id='" + id + "'")) {
             if (rs.next()) {
                 String nume = rs.getString("nume");
                 String prenume = rs.getString("prenume");
                 String nr_telefon = rs.getString("nr_telefon");
                 String email = rs.getString("email");
-                return new Doctor(id,nume, prenume, nr_telefon, email);
+                String image = rs.getString("image");
+
+                var specializare = new SpecializareDAO();
+                var specializari = specializare.findSpecializariByDoctorId(id);
+
+                var cabinet = new CabinetDAO();
+                var cabinete = cabinet.findCabineteByDoctorId(id);
+
+                return new Doctor(id,nume, prenume, nr_telefon, email,image,specializari,cabinete);
             } else {
                 return null;
             }

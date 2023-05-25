@@ -17,6 +17,30 @@ public class CabinetDAO {
         }
     }
 
+    public List<String> findCabineteByDoctorId(int id_doctor) throws SQLException{
+        List<String> cabinete = new ArrayList<>();
+        Connection con = Database.getConnection();
+        try (Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select id_cabinet from program_doctori where id_doctor='" + id_doctor + "'")) {
+            while (rs.next()) {
+                int id_cabinet = rs.getInt("id_cabinet");
+
+                try(Statement statement = con.createStatement();
+                    ResultSet resultSet = statement.executeQuery(
+                            "select denumire from cabinete where id='" + id_cabinet + "'")){
+                    while(resultSet.next()){
+                        String denumire = resultSet.getString("denumire");
+
+                        cabinete.add(denumire);
+                    }
+                }
+
+            }
+            return cabinete;
+        }
+    }
+
     public List<Cabinet> getAllCabinets() throws SQLException {
         Connection con = Database.getConnection();
         List<Cabinet> cabinetList = new ArrayList<>();
