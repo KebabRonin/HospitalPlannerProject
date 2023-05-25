@@ -221,6 +221,22 @@
 		}
 
 		/**
+		 * Unselect a date from teh calendar
+		 * @param {date} date
+		 * @returns {Calendar instance}
+		 */
+		unselectDate(date){
+			console.log(this.selectedDates);
+			if(this.month !== date.getMonth()) return;
+			if(this.year !== date.getFullYear()) return;
+			this.elem.getElementsByClassName("cjs-dayCell"+(date.getDate()))[0]
+				.parentNode.parentNode.parentNode.classList.remove("cjs-active");
+			this.selectedDates = this.selectedDates.filter(value => value.getDate() !== date.getDate());
+			console.log(this.selectedDates);
+			return this;
+		}
+
+		/**
 		 * Select a range of dates
 		 * @param {date} date1
 		 * @param {date} date2
