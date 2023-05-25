@@ -5,9 +5,9 @@
 -- Dumped from database version 15.2
 -- Dumped by pg_dump version 15.2
 
--- Started on 2023-05-24 23:45:26
+-- Started on 2023-05-26 00:02:56
 --
--- TOC entry 238 (class 1255 OID 25228)
+-- TOC entry 237 (class 1255 OID 25228)
 -- Name: add_constraints(); Type: PROCEDURE; Schema: public; Owner: postgres
 --
 
@@ -112,7 +112,68 @@ $$;
 ALTER FUNCTION public.maxid() OWNER TO postgres;
 
 --
--- TOC entry 237 (class 1255 OID 25352)
+-- TOC entry 239 (class 1255 OID 25385)
+-- Name: normalize_hours(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.normalize_hours() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+	v_rec program_doctori%ROWTYPE;
+BEGIN
+	-- Lucrez 20 min
+	IF (NEW.timp_final - NEW.timp_inceput)::TIME BETWEEN '00:00:01'::TIME AND '00:59:00'::TIME THEN
+		RAISE EXCEPTION 'Cannot have less than 1 worked hour';
+	END IF;
+	
+	-- Aliniez la ora
+	IF NEW.timp_inceput <> '24:00:00'::TIME THEN
+		NEW.timp_inceput := DATE_BIN(INTERVAL '1 hour', ('2023-01-01 ' ||NEW.timp_inceput)::TIMESTAMP, TIMESTAMP '2023-01-01 00:00:00');
+	END IF;
+	
+	IF NEW.timp_final <> '24:00:00'::TIME THEN
+		NEW.timp_final := DATE_BIN(INTERVAL '1 hour', ('2023-01-01 ' ||NEW.timp_final)::TIMESTAMP, TIMESTAMP '2023-01-01 00:00:00');
+	END IF;
+
+	-- Impart intervalul pe zile (daca am 9:00 - 9:00 zic ca lucreaza 24h)
+	IF NEW.timp_inceput >= NEW.timp_final THEN
+		v_rec := NEW;
+		v_rec.timp_final := '24:00'::TIME;
+		INSERT INTO program_doctori VALUES(v_rec.*);
+		
+		NEW.timp_inceput := '00:00'::TIME;
+		NEW.zi := NEW.zi + '1 day'::INTERVAL;
+	END IF;
+	
+	-- Vad daca nu se intersecteaza cu alte programe ale aceluiasi doctor
+	DECLARE
+			v_start1 TIMESTAMP;
+			v_end1 TIMESTAMP;
+			v_start2 TIMESTAMP;
+			v_end2 TIMESTAMP;
+			v_prog RECORD;
+	BEGIN
+		FOR v_prog IN (SELECT zi, timp_inceput, timp_final FROM program_doctori WHERE id_doctor = NEW.id_doctor) LOOP
+				v_start1 := v_prog.zi || ' ' || v_prog.timp_inceput;
+				v_end1 := v_prog.zi || ' ' || v_prog.timp_final;
+				v_start2 := NEW.zi || ' ' || NEW.timp_inceput;
+				v_end2 := NEW.zi || ' ' || NEW.timp_final;
+				IF v_start1 < v_end2 AND v_end1 > v_start2 THEN
+					RAISE EXCEPTION 'Intersection: % - % and % - %', v_start1, v_end1, v_start2, v_end2;
+				END IF;
+
+		END LOOP;
+	END;
+	RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.normalize_hours() OWNER TO postgres;
+
+--
+-- TOC entry 238 (class 1255 OID 25352)
 -- Name: populare_tabele(integer, integer, integer); Type: PROCEDURE; Schema: public; Owner: postgres
 --
 
@@ -127,6 +188,8 @@ DECLARE
 	v_specializari_l CHARACTER VARYING[] := array['Alergologie şi imunologie clinică','Anestezie şi terapie intensivă','Boli infecţioase','Cardiologie','Cardiologie pediatrică','Dermatovenerologie','Diabet zaharat, nutriţie şi boli metabolice','Endocrinologie','Expertiza medicală a capacităţii de muncă','Farmacologie clinică','Gastroenterologie','Gastroenterologie pediatrică','Genetică medicală','Geriatrie şi gerontologie','Hematologie','Medicină de familie','Medicină de urgenţă','Medicină internă','Medicină fizică şi de reabilitare','Medicina muncii','Medicină sportivă','Nefrologie','Nefrologie pediatrică','Neonatologie','Neurologie','Neurologie pediatrică','Oncologie medicală','Oncologie şi hematologie pediatrică','Pediatrie','Pneumologie','Pneumologie pediatrică','Psihiatrie','Psihiatrie pediatrică','Radioterapie','Reumatologie'];
 	v_temp1 CHARACTER VARYING;
 	v_temp2 CHARACTER VARYING;
+	v_temp_i INTEGER;
+	v_temp_t TIMESTAMP;
 BEGIN
 	BEGIN
 		FOR v_i IN 1..ARRAY_LENGTH(v_specializari_l,1) LOOP
@@ -161,29 +224,43 @@ BEGIN
 			v_temp2 := array_to_string(array_prepend('0'::character,array_prepend('7'::character,random_str('0123456789', 8))),'');
 		END IF;
 		
-		INSERT INTO doctori(nume, prenume, nr_telefon, email) 
-				VALUES(v_nume, v_prenume, v_temp2, v_temp1);
-				
 		INSERT INTO cabinete(denumire, etaj) 
-				VALUES(ARRAY_TO_STRING(random_str('ABCDEFGH',1) || random_str('0123456789',3),''), (random() * 9 + 1)::INT);
-		BEGIN	
-			FOR v_j IN 1..((random() * 2 + 1)::INT) LOOP
-				INSERT INTO doctori_specializari(id_doctor, id_specializare) 
-					VALUES(v_i, ((random() * (SELECT MAX(id) - 1 FROM specializari) + 1)::INT));
-			END LOOP;
+				VALUES(ARRAY_TO_STRING(random_str('ABCDEFGH',1) || random_str('0123456789',3),''), (random() * 9 + 1)::INT) RETURNING id INTO v_temp_i;
+		
+		
+		INSERT INTO doctori(nume, prenume, nr_telefon, email, id_cabinet) 
+				VALUES(v_nume, v_prenume, v_temp2, v_temp1, v_temp_i) RETURNING id INTO v_temp_i;
+				
+		
+		BEGIN
+			INSERT INTO doctori_specializari(id_doctor, id_specializare) 
+				VALUES(v_temp_i, ((random() * (SELECT MAX(id) - 1 FROM specializari) + 1)::INT));
 		EXCEPTION WHEN OTHERS THEN NULL;
 		END;
+		
+		FOR v_j IN 0..14 LOOP
+			v_temp_t := DATE_BIN('1 hour', NOW()::TIMESTAMP + (((random() * 23)) || ' hours')::INTERVAL, TIMESTAMP '2023-01-01 00:00:00');
+			BEGIN
+				INSERT INTO program_doctori(id_doctor, zi, timp_inceput, timp_final)
+					VALUES(v_temp_i, NOW()::TIMESTAMP + (v_j || ' days')::INTERVAL, v_temp_t::TIME,
+						   v_temp_t::TIMESTAMP + (((random() * 7) + 1)::INTEGER || ' hours')::INTERVAL 
+					);
+			EXCEPTION WHEN OTHERS THEN NULL;
+			END;
+		END LOOP;
+		
 	END LOOP;
 	
 	FOR v_i IN 1..p_nr_programari LOOP
-		BEGIN
-			INSERT INTO programari(id_pacient, id_doctor, data_programare)
-				VALUES(((random() * (SELECT MAX(id) - 1 FROM pacienti) + 1)::INT), ((random() * (SELECT MAX(id) - 1 FROM doctori) + 1)::INT),
-					   DATE_BIN('30 minutes', NOW()::TIMESTAMP + ((random() * 1000) || ' hours')::INTERVAL, TIMESTAMP '2023-01-01')
-					  );
-		EXCEPTION WHEN OTHERS THEN NULL;
-		END;
+		INSERT INTO programari(id_pacient, id_doctor, data_programare, ora_programare)
+			VALUES( ((random() * (SELECT MAX(id) - 1 FROM pacienti) + 1)::INT), 
+					((random() * (SELECT MAX(id) - 1 FROM doctori ) + 1)::INT),
+					NOW()::TIMESTAMP + ((random() * 7) || ' days')::INTERVAL,
+					DATE_BIN('30 minutes'::INTERVAL, NOW()::TIMESTAMP + (((random() * 47) * 30) || ' minutes')::INTERVAL, TIMESTAMP '2023-01-01 00:00:00')
+				  );
 	END LOOP;
+	
+	
 END;
 $$;
 
@@ -224,7 +301,7 @@ CREATE TABLE public.cabinete (
     id integer NOT NULL,
     denumire character varying NOT NULL,
     etaj integer NOT NULL,
-    image character varying(255)
+    imagine character varying(255)
 );
 
 
@@ -240,7 +317,9 @@ CREATE TABLE public.doctori (
     nume character varying NOT NULL,
     prenume character varying NOT NULL,
     email character varying,
-    nr_telefon character varying(10)
+    nr_telefon character varying(10),
+    imagine character varying,
+    id_cabinet integer NOT NULL
 );
 
 
@@ -285,8 +364,10 @@ ALTER TABLE public.pacienti OWNER TO postgres;
 
 CREATE TABLE public.program_doctori (
     id_doctor integer NOT NULL,
-    id_cabinet integer NOT NULL,
-    perioada daterange NOT NULL
+    id integer NOT NULL,
+    zi date NOT NULL,
+    timp_inceput time without time zone NOT NULL,
+    timp_final time without time zone NOT NULL
 );
 
 
@@ -301,8 +382,8 @@ CREATE TABLE public.programari (
     id integer NOT NULL,
     id_doctor integer NOT NULL,
     id_pacient integer NOT NULL,
-    data_programare timestamp without time zone NOT NULL,
-    ora_programare time without time zone
+    data_programare date NOT NULL,
+    ora_programare time without time zone NOT NULL
 );
 
 
@@ -322,7 +403,77 @@ CREATE TABLE public.specializari (
 ALTER TABLE public.specializari OWNER TO postgres;
 
 --
--- TOC entry 3214 (class 2606 OID 25319)
+-- TOC entry 3375 (class 0 OID 16487)
+-- Dependencies: 218
+-- Data for Name: cabinete; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.cabinete (id, denumire, etaj, imagine) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3372 (class 0 OID 16468)
+-- Dependencies: 215
+-- Data for Name: doctori; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.doctori (id, nume, prenume, email, nr_telefon, imagine, id_cabinet) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3374 (class 0 OID 16482)
+-- Dependencies: 217
+-- Data for Name: doctori_specializari; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.doctori_specializari (id_doctor, id_specializare) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3371 (class 0 OID 16455)
+-- Dependencies: 214
+-- Data for Name: pacienti; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.pacienti (id, nume, prenume, adresa, email, parola, nr_telefon, data_nastere) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3376 (class 0 OID 16494)
+-- Dependencies: 219
+-- Data for Name: program_doctori; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.program_doctori (id_doctor, id, zi, timp_inceput, timp_final) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3377 (class 0 OID 25163)
+-- Dependencies: 220
+-- Data for Name: programari; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.programari (id, id_doctor, id_pacient, data_programare, ora_programare) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3373 (class 0 OID 16475)
+-- Dependencies: 216
+-- Data for Name: specializari; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.specializari (id, denumire) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3215 (class 2606 OID 25319)
 -- Name: cabinete cabinete_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -331,7 +482,7 @@ ALTER TABLE ONLY public.cabinete
 
 
 --
--- TOC entry 3206 (class 2606 OID 25246)
+-- TOC entry 3207 (class 2606 OID 25246)
 -- Name: doctori doctori_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -340,7 +491,7 @@ ALTER TABLE ONLY public.doctori
 
 
 --
--- TOC entry 3212 (class 2606 OID 25265)
+-- TOC entry 3213 (class 2606 OID 25265)
 -- Name: doctori_specializari doctori_specializari_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -349,7 +500,7 @@ ALTER TABLE ONLY public.doctori_specializari
 
 
 --
--- TOC entry 3204 (class 2606 OID 25233)
+-- TOC entry 3205 (class 2606 OID 25233)
 -- Name: pacienti pacients_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -358,16 +509,16 @@ ALTER TABLE ONLY public.pacienti
 
 
 --
--- TOC entry 3216 (class 2606 OID 25279)
+-- TOC entry 3217 (class 2606 OID 25371)
 -- Name: program_doctori program_doctori_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.program_doctori
-    ADD CONSTRAINT program_doctori_pkey PRIMARY KEY (id_doctor, id_cabinet, perioada);
+    ADD CONSTRAINT program_doctori_pkey PRIMARY KEY (id);
 
 
 --
--- TOC entry 3218 (class 2606 OID 25287)
+-- TOC entry 3219 (class 2606 OID 25287)
 -- Name: programari programari_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -376,7 +527,7 @@ ALTER TABLE ONLY public.programari
 
 
 --
--- TOC entry 3208 (class 2606 OID 25340)
+-- TOC entry 3209 (class 2606 OID 25340)
 -- Name: specializari specializari_denumire_denumire1_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -385,7 +536,7 @@ ALTER TABLE ONLY public.specializari
 
 
 --
--- TOC entry 3210 (class 2606 OID 25311)
+-- TOC entry 3211 (class 2606 OID 25311)
 -- Name: specializari specializari_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -394,7 +545,15 @@ ALTER TABLE ONLY public.specializari
 
 
 --
--- TOC entry 3224 (class 2620 OID 25190)
+-- TOC entry 3226 (class 2620 OID 25391)
+-- Name: program_doctori a_trg_program_doctori_normalize_hours; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER a_trg_program_doctori_normalize_hours BEFORE INSERT ON public.program_doctori FOR EACH ROW EXECUTE FUNCTION public.normalize_hours();
+
+
+--
+-- TOC entry 3225 (class 2620 OID 25190)
 -- Name: cabinete cabinete_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -402,7 +561,7 @@ CREATE TRIGGER cabinete_maxid BEFORE INSERT ON public.cabinete FOR EACH ROW EXEC
 
 
 --
--- TOC entry 3222 (class 2620 OID 25188)
+-- TOC entry 3223 (class 2620 OID 25188)
 -- Name: doctori doctori_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -410,7 +569,7 @@ CREATE TRIGGER doctori_maxid BEFORE INSERT ON public.doctori FOR EACH ROW EXECUT
 
 
 --
--- TOC entry 3221 (class 2620 OID 25189)
+-- TOC entry 3222 (class 2620 OID 25189)
 -- Name: pacienti pacienti_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -418,7 +577,15 @@ CREATE TRIGGER pacienti_maxid BEFORE INSERT ON public.pacienti FOR EACH ROW EXEC
 
 
 --
--- TOC entry 3225 (class 2620 OID 25187)
+-- TOC entry 3227 (class 2620 OID 25387)
+-- Name: program_doctori program_doctori_maxid; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER program_doctori_maxid BEFORE INSERT ON public.program_doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
+
+
+--
+-- TOC entry 3228 (class 2620 OID 25187)
 -- Name: programari programari_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -426,7 +593,7 @@ CREATE TRIGGER programari_maxid BEFORE INSERT ON public.programari FOR EACH ROW 
 
 
 --
--- TOC entry 3223 (class 2620 OID 25229)
+-- TOC entry 3224 (class 2620 OID 25229)
 -- Name: specializari specializari_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -434,7 +601,7 @@ CREATE TRIGGER specializari_maxid BEFORE INSERT ON public.specializari FOR EACH 
 
 
 --
--- TOC entry 3219 (class 2606 OID 25292)
+-- TOC entry 3220 (class 2606 OID 25292)
 -- Name: programari appointments_id_doctor_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -443,7 +610,7 @@ ALTER TABLE ONLY public.programari
 
 
 --
--- TOC entry 3220 (class 2606 OID 25301)
+-- TOC entry 3221 (class 2606 OID 25301)
 -- Name: programari appointments_id_pacient_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -451,7 +618,7 @@ ALTER TABLE ONLY public.programari
     ADD CONSTRAINT appointments_id_pacient_fkey FOREIGN KEY (id_pacient) REFERENCES public.pacienti(id);
 
 
--- Completed on 2023-05-24 23:45:27
+-- Completed on 2023-05-26 00:02:56
 
 --
 -- PostgreSQL database dump complete
