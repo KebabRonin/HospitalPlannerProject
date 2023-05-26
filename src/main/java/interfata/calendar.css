@@ -20,6 +20,8 @@
 /*	position: relative;*/
 }
 
+
+
 .cjs-calHeader{
 	width:100%;
 	color: #2C7EAA;
@@ -189,6 +191,8 @@
 	font-size:0.8em;
 	margin:0;
 	padding:0;
+	user-select:none;
+	pointer-events: none;
 }
 
 .cjs-otherEvents{

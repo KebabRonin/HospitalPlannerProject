@@ -226,13 +226,11 @@
 		 * @returns {Calendar instance}
 		 */
 		unselectDate(date){
-			console.log(this.selectedDates);
 			if(this.month !== date.getMonth()) return;
 			if(this.year !== date.getFullYear()) return;
 			this.elem.getElementsByClassName("cjs-dayCell"+(date.getDate()))[0]
 				.parentNode.parentNode.parentNode.classList.remove("cjs-active");
-			this.selectedDates = this.selectedDates.filter(value => value.getDate() !== date.getDate());
-			console.log(this.selectedDates);
+			this.selectedDates = this.selectedDates.filter(value => value.day !== date.getDate());
 			return this;
 		}
 
@@ -360,7 +358,8 @@
 						}
 					}
 
-					var isDisabled = this.disabledDates.includes(`${this.month + 1}/${currentDate}/${this.year}`);
+					var d = new Date();
+					var isDisabled = ((this.month < d.getMonth()) || ((this.month == d.getMonth()) && (currentDate < d.getDate()))) || this.disabledDates.includes(`${this.month + 1}/${currentDate}/${this.year}`);
 					var directionalClass = "";
 					if(currentDay===6) directionalClass = " cjs-right";
 					if((lastDate-currentDate)<7){
