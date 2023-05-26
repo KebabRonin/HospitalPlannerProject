@@ -62,20 +62,12 @@
         <h2>Make an Appointment</h2>
         <form>
             <div id="calendar"><script src="calendar.js"></script><script src="make_appointment_calendar.js"></script></div>
+            
             <label for="doctor">Preferred Doctor:</label>
-            <select id="doctor" name="doctor">
-                <option value="">Any Doctor</option>
-                <option value="Dr. John Doe">Dr. John Doe</option>
-                <option value="Dr. Jane Smith">Dr. Jane Smith</option>
-                <option value="Dr. Robert Johnson">Dr. Robert Johnson</option>
-            </select>
-
-            <label for="dates">Available Dates:</label>
-            <input type="date" id="dates" name="dates" required>
+            <select id="doctor" name="doctor"></select>
 
             <label for="hours">Available Hours:</label>
-            <input type="time" id="hours" name="hours"
-                   min="09:00" max="18:00" required>
+            <select id="hours" name="hours" required></select>
 
             <input type="submit" value="Submit">
         </form>

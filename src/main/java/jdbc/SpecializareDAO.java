@@ -6,11 +6,10 @@ import java.util.List;
 
 public class SpecializareDAO {
     public void create(String denumire) throws SQLException {
-        Connection con = Database.getConnection();
-        try (PreparedStatement pstmt = con.prepareStatement(
-                "insert into specializari (id, denumire) values (?,?)")) {
-            pstmt.setInt(1,1000);
-            pstmt.setString(2,denumire);
+        try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(
+                "insert into specializari (denumire) values (?)")) {
+            pstmt.setString(1,denumire);
 
             pstmt.executeUpdate();
         }
@@ -18,8 +17,8 @@ public class SpecializareDAO {
 
     public List<Specializare> findSpecializariByDoctorId(int id_doctor) throws SQLException{
         List<Specializare> specializari = new ArrayList<>();
-        Connection con = Database.getConnection();
-        try (Statement stmt = con.createStatement();
+        try (Connection con = Database.getConnection();
+        Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
                      "select id_specializare from doctori_specializari where id_doctor='" + id_doctor + "'")) {
             while (rs.next()) {
@@ -42,8 +41,8 @@ public class SpecializareDAO {
 
     public List<Specializare> getAllSpecializari() throws SQLException {
         List<Specializare> specializari = new ArrayList<>();
-        Connection con = Database.getConnection();
-        try (Statement stmt = con.createStatement();
+        try (Connection con = Database.getConnection();
+        Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
                      "select id,denumire from specializari")) {
             while (rs.next()) {

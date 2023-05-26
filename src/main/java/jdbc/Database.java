@@ -2,6 +2,8 @@ package jdbc;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.metrics.MetricsTrackerFactory;
+import com.zaxxer.hikari.metrics.prometheus.PrometheusMetricsTrackerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -16,7 +18,7 @@ public class Database {
     private Database() {
     }
 
-    public static Connection getConnection() throws SQLException {
+    public static synchronized Connection getConnection() throws SQLException {
         if (dataSource == null) {
             createDataSource();
         }
@@ -28,9 +30,8 @@ public class Database {
         config.setJdbcUrl(URL);
         config.setUsername(USER);
         config.setPassword(PASSWORD);
-        config.setMaximumPoolSize(100);
+        config.setMaximumPoolSize(50);
         dataSource = new HikariDataSource(config);
-
     }
 
     public static void closeDataSource() {

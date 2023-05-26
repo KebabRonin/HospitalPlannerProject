@@ -5,9 +5,9 @@ import java.util.List;
 
 public class ProgramareDAO {
     public void create(int id, int id_pacient, int id_doctor, int id_cabinet, Date data_programare) throws SQLException {
-        Connection con = Database.getConnection();
-        try (PreparedStatement pstmt = con.prepareStatement(
-                "insert into programari (id_pacient, id_doctor, id_cabinet, data_programare) values (?,?,?,?,?)")) {
+        try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(
+                "insert into programari (id_pacient, id_doctor, data_programare) values (?,?,?,?,?)")) {
             pstmt.setInt(1,id_pacient);
             pstmt.setInt(2,id_doctor);
             pstmt.setDate(3,data_programare);
@@ -17,8 +17,8 @@ public class ProgramareDAO {
     }
     public List<Programare> findAllOfPatientId(int id_pacient) throws SQLException {
         List<Programare> rez = new ArrayList<>();
-        Connection con = Database.getConnection();
-        try (Statement stmt = con.createStatement();
+        try (Connection con = Database.getConnection();
+        Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
                      "select id, id_pacient, id_doctor, data_programare from programari where id_pacient='" + id_pacient + "'")) {
             while (rs.next()) {
@@ -29,49 +29,5 @@ public class ProgramareDAO {
             }
             return rez;
         }
-    }
-
-    public int idMax() throws SQLException {
-        Connection con = Database.getConnection();
-        Statement stmt = con.createStatement();
-
-        int var4;
-        try {
-            ResultSet rs = stmt.executeQuery("select max(id) from programari");
-
-            try {
-                var4 = rs.next() ? rs.getInt(1) : null;
-            } catch (Throwable var8) {
-                if (rs != null) {
-                    try {
-                        rs.close();
-                    } catch (Throwable var7) {
-                        var8.addSuppressed(var7);
-                    }
-                }
-
-                throw var8;
-            }
-
-            if (rs != null) {
-                rs.close();
-            }
-        } catch (Throwable var9) {
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (Throwable var6) {
-                    var9.addSuppressed(var6);
-                }
-            }
-
-            throw var9;
-        }
-
-        if (stmt != null) {
-            stmt.close();
-        }
-
-        return var4;
     }
 }

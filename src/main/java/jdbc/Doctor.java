@@ -10,7 +10,7 @@ public class Doctor {
     private String email;
     private String image;
     private List<Specializare> specializari;
-    private List<String> cabinete;
+    private int id_cabinet;
 
     public Doctor(){}
     public Doctor(String nume, String prenume) {
@@ -18,7 +18,7 @@ public class Doctor {
         this.prenume = prenume;
     }
 
-    public Doctor(int id, String nume, String prenume, String nr_telefon, String email, String image, List<Specializare> specializari, List<String> cabinete) {
+    public Doctor(int id, String nume, String prenume, String nr_telefon, String email, String image, List<Specializare> specializari, int id_cabinet) {
         this.id = id;
         this.nume = nume;
         this.prenume = prenume;
@@ -26,7 +26,7 @@ public class Doctor {
         this.email = email;
         this.image = image;
         this.specializari = specializari;
-        this.cabinete = cabinete;
+        this.id_cabinet = id_cabinet;
     }
 
     public void setName(String name) {
@@ -89,12 +89,12 @@ public class Doctor {
         this.specializari = specializari;
     }
 
-    public List<String> getCabinete() {
-        return cabinete;
+    public void setId_cabinet(int id_cabinet) {
+        this.id_cabinet = id_cabinet;
     }
 
-    public void setCabinete(List<String> cabinete) {
-        this.cabinete = cabinete;
+    public int getId_cabinet() {
+        return id_cabinet;
     }
 }
 

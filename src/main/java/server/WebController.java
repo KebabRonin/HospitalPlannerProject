@@ -103,7 +103,7 @@ public class WebController {
                 return "Cabinet already exists.";
             }
             String fileName = cabinetPicture.getOriginalFilename();
-            String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
+            String folderPath = "C:\\Users\\KebabWarrior\\Desktop\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
             String filePath = folderPath + fileName;
 
             cabinetPicture.transferTo(new File(filePath));
