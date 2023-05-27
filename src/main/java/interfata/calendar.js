@@ -221,6 +221,21 @@
 		}
 
 		/**
+		 * Unselect a date from teh calendar
+		 * @param {date} date
+		 * @returns {Calendar instance}
+		 */
+		unselectDate(date){
+			if(this.month !== date.getMonth()) return;
+			if(this.year !== date.getFullYear()) return;
+			this.elem.getElementsByClassName("cjs-dayCell"+(date.getDate()))[0]
+				.parentNode.parentNode.parentNode.classList.remove("cjs-active");
+			
+			this.selectedDates = selected_dates.filter(d => d.getTime() !== date.getTime());
+			return this;
+		}
+
+		/**
 		 * Select a range of dates
 		 * @param {date} date1
 		 * @param {date} date2
@@ -344,7 +359,8 @@
 						}
 					}
 
-					var isDisabled = this.disabledDates.includes(`${this.month + 1}/${currentDate}/${this.year}`);
+					var today = new Date();
+					var isDisabled = this.year < today.getFullYear() || this.month < today.getMonth() || (this.month == today.getMonth() && currentDate < today.getDate()) || this.disabledDates.includes(`${this.month + 1}/${currentDate}/${this.year}`);
 					var directionalClass = "";
 					if(currentDay===6) directionalClass = " cjs-right";
 					if((lastDate-currentDate)<7){
