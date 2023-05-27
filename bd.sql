@@ -5,88 +5,124 @@
 -- Dumped from database version 15.2
 -- Dumped by pg_dump version 15.2
 
--- Started on 2023-05-26 00:02:56
---
--- TOC entry 237 (class 1255 OID 25228)
--- Name: add_constraints(); Type: PROCEDURE; Schema: public; Owner: postgres
---
+-- Started on 2023-05-27 14:02:36
 
-CREATE PROCEDURE public.add_constraints()
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-	i RECORD;
-BEGIN
-	FOR i IN (select * from information_schema.tables where table_schema = 'public') loop
-		IF (select COUNT(*) from information_schema.columns where table_name = i.table_name AND column_name = 'id') > 0 THEN
-			EXECUTE FORMAT('CREATE OR REPLACE TRIGGER %s_maxId before insert on %s for each row execute procedure maxId()', i.table_name, i.table_name);
-		END IF;
-	end loop;
-END;
-$$;
+SET default_tablespace = '';
 
-
-ALTER PROCEDURE public.add_constraints() OWNER TO postgres;
+SET default_table_access_method = heap;
 
 --
--- TOC entry 223 (class 1255 OID 25200)
--- Name: choice(character varying[]); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 218 (class 1259 OID 16487)
+-- Name: cabinete; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.choice(p_list character varying[]) RETURNS character varying
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-	RETURN p_list[(random() * (array_length(p_list, 1) - 1) + 1)::INT];
-END;
-$$;
+CREATE TABLE public.cabinete (
+    id integer PRIMARY KEY,
+    denumire character varying NOT NULL,
+    etaj integer NOT NULL,
+    image character varying(255)
+);
 
 
-ALTER FUNCTION public.choice(p_list character varying[]) OWNER TO postgres;
-
---
--- TOC entry 235 (class 1255 OID 25213)
--- Name: delete_all_data(); Type: PROCEDURE; Schema: public; Owner: postgres
---
-
-CREATE PROCEDURE public.delete_all_data()
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-	delete from programari;
-	delete from pacienti;
-	delete from doctori_specializari;
-	delete from program_doctori;
-	delete from doctori;
-	delete from specializari;
-	delete from cabinete;
-END;
-$$;
-
-
-ALTER PROCEDURE public.delete_all_data() OWNER TO postgres;
+ALTER TABLE public.cabinete OWNER TO postgres;
 
 --
--- TOC entry 221 (class 1255 OID 16512)
--- Name: get_specializations_by_doctor_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 215 (class 1259 OID 16468)
+-- Name: doctori; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.get_specializations_by_doctor_id(doc_id bigint) RETURNS bigint[]
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-  spec_list BIGINT[];
-BEGIN
-  SELECT ARRAY_AGG(id_specializare) INTO spec_list
-  FROM doctori_specializari
-  WHERE id_doctor = doc_id;
-
-  RETURN spec_list;
-END;
-$$;
+CREATE TABLE public.doctori (
+    id integer PRIMARY KEY,
+    nume character varying NOT NULL,
+    prenume character varying NOT NULL,
+    email character varying,
+    nr_telefon character varying(10),
+    image character varying,
+    id_cabinet integer NOT NULL
+);
 
 
-ALTER FUNCTION public.get_specializations_by_doctor_id(doc_id bigint) OWNER TO postgres;
+ALTER TABLE public.doctori OWNER TO postgres;
+
+--
+-- TOC entry 216 (class 1259 OID 16475)
+-- Name: specializari; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.specializari (
+    id integer PRIMARY KEY,
+    denumire character varying NOT NULL,
+	UNIQUE(denumire)
+);
+
+
+ALTER TABLE public.specializari OWNER TO postgres;
+
+--
+-- TOC entry 217 (class 1259 OID 16482)
+-- Name: doctori_specializari; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.doctori_specializari (
+    id_doctor integer NOT NULL REFERENCES public.doctori (id) ON DELETE CASCADE,
+    id_specializare integer NOT NULL REFERENCES public.specializari (id) ON DELETE CASCADE,
+	UNIQUE(id_doctor, id_specializare)
+);
+
+
+ALTER TABLE public.doctori_specializari OWNER TO postgres;
+
+--
+-- TOC entry 214 (class 1259 OID 16455)
+-- Name: pacienti; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.pacienti (
+    id integer PRIMARY KEY,
+    nume character varying NOT NULL,
+    prenume character varying NOT NULL,
+    adresa character varying,
+    email character varying NOT NULL,
+    parola character varying NOT NULL,
+    nr_telefon character varying(10),
+    data_nastere character varying(15) NOT NULL
+);
+
+
+ALTER TABLE public.pacienti OWNER TO postgres;
+
+--
+-- TOC entry 219 (class 1259 OID 16494)
+-- Name: program_doctori; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.program_doctori (
+    id integer PRIMARY KEY,
+    id_doctor integer NOT NULL REFERENCES public.doctori (id) ON DELETE CASCADE,
+    zi date NOT NULL,
+    timp_inceput time without time zone NOT NULL,
+    timp_final time without time zone NOT NULL
+);
+
+
+ALTER TABLE public.program_doctori OWNER TO postgres;
+
+--
+-- TOC entry 220 (class 1259 OID 25163)
+-- Name: programari; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.programari (
+    id integer PRIMARY KEY,
+    id_doctor integer NOT NULL REFERENCES public.doctori (id) ON DELETE CASCADE,
+    id_pacient integer NOT NULL REFERENCES public.pacienti (id) ON DELETE CASCADE,
+    data_programare date NOT NULL,
+    ora_programare time without time zone NOT NULL
+);
+
+
+ALTER TABLE public.programari OWNER TO postgres;
+
 
 --
 -- TOC entry 222 (class 1255 OID 25184)
@@ -110,6 +146,28 @@ $$;
 
 
 ALTER FUNCTION public.maxid() OWNER TO postgres;
+--
+-- TOC entry 237 (class 1255 OID 25228)
+-- Name: add_constraints(); Type: PROCEDURE; Schema: public; Owner: postgres
+--
+
+CREATE PROCEDURE public.add_constraints()
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+	i RECORD;
+BEGIN
+	FOR i IN (select * from information_schema.tables where table_schema = 'public') loop
+		IF (select COUNT(*) from information_schema.columns where table_name = i.table_name AND column_name = 'id') > 0 THEN
+			EXECUTE FORMAT('CREATE OR REPLACE TRIGGER %s_maxId before insert on %s for each row execute procedure maxId()', i.table_name, i.table_name);
+		END IF;
+	end loop;
+END;
+$$;
+
+
+ALTER PROCEDURE public.add_constraints() OWNER TO postgres;
+
 
 --
 -- TOC entry 239 (class 1255 OID 25385)
@@ -171,6 +229,130 @@ $$;
 
 
 ALTER FUNCTION public.normalize_hours() OWNER TO postgres;
+
+
+--
+-- TOC entry 3213 (class 2606 OID 25265)
+-- Name: doctori_specializari doctori_specializari_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.doctori_specializari
+    ADD CONSTRAINT doctori_specializari_pkey PRIMARY KEY (id_doctor, id_specializare);
+
+--
+-- TOC entry 3226 (class 2620 OID 25391)
+-- Name: program_doctori a_trg_program_doctori_normalize_hours; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER a_trg_program_doctori_normalize_hours BEFORE INSERT ON public.program_doctori FOR EACH ROW EXECUTE FUNCTION public.normalize_hours();
+
+
+--
+-- TOC entry 3225 (class 2620 OID 25190)
+-- Name: cabinete cabinete_maxid; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER cabinete_maxid BEFORE INSERT ON public.cabinete FOR EACH ROW EXECUTE FUNCTION public.maxid();
+
+
+--
+-- TOC entry 3223 (class 2620 OID 25188)
+-- Name: doctori doctori_maxid; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER doctori_maxid BEFORE INSERT ON public.doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
+
+
+--
+-- TOC entry 3222 (class 2620 OID 25189)
+-- Name: pacienti pacienti_maxid; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER pacienti_maxid BEFORE INSERT ON public.pacienti FOR EACH ROW EXECUTE FUNCTION public.maxid();
+
+
+--
+-- TOC entry 3227 (class 2620 OID 25387)
+-- Name: program_doctori program_doctori_maxid; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER program_doctori_maxid BEFORE INSERT ON public.program_doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
+
+
+--
+-- TOC entry 3228 (class 2620 OID 25187)
+-- Name: programari programari_maxid; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER programari_maxid BEFORE INSERT ON public.programari FOR EACH ROW EXECUTE FUNCTION public.maxid();
+
+
+--
+-- TOC entry 3224 (class 2620 OID 25229)
+-- Name: specializari specializari_maxid; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER specializari_maxid BEFORE INSERT ON public.specializari FOR EACH ROW EXECUTE FUNCTION public.maxid();
+
+--
+-- TOC entry 223 (class 1255 OID 25200)
+-- Name: choice(character varying[]); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.choice(p_list character varying[]) RETURNS character varying
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	RETURN p_list[(random() * (array_length(p_list, 1) - 1) + 1)::INT];
+END;
+$$;
+
+
+ALTER FUNCTION public.choice(p_list character varying[]) OWNER TO postgres;
+
+--
+-- TOC entry 235 (class 1255 OID 25213)
+-- Name: delete_all_data(); Type: PROCEDURE; Schema: public; Owner: postgres
+--
+
+CREATE PROCEDURE public.delete_all_data()
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	delete from programari;
+	delete from pacienti;
+	delete from doctori_specializari;
+	delete from program_doctori;
+	delete from doctori;
+	delete from specializari;
+	delete from cabinete;
+END;
+$$;
+
+
+ALTER PROCEDURE public.delete_all_data() OWNER TO postgres;
+
+--
+-- TOC entry 221 (class 1255 OID 16512)
+-- Name: get_specializations_by_doctor_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.get_specializations_by_doctor_id(doc_id bigint) RETURNS bigint[]
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  spec_list BIGINT[];
+BEGIN
+  SELECT ARRAY_AGG(id_specializare) INTO spec_list
+  FROM doctori_specializari
+  WHERE id_doctor = doc_id;
+
+  RETURN spec_list;
+END;
+$$;
+
+
+ALTER FUNCTION public.get_specializations_by_doctor_id(doc_id bigint) OWNER TO postgres;
 
 --
 -- TOC entry 238 (class 1255 OID 25352)
@@ -288,339 +470,9 @@ $$;
 
 ALTER FUNCTION public.random_str(p_alphabet character varying, p_length integer) OWNER TO postgres;
 
-SET default_tablespace = '';
 
-SET default_table_access_method = heap;
-
---
--- TOC entry 218 (class 1259 OID 16487)
--- Name: cabinete; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.cabinete (
-    id integer NOT NULL,
-    denumire character varying NOT NULL,
-    etaj integer NOT NULL,
-    imagine character varying(255)
-);
-
-
-ALTER TABLE public.cabinete OWNER TO postgres;
-
---
--- TOC entry 215 (class 1259 OID 16468)
--- Name: doctori; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.doctori (
-    id integer NOT NULL,
-    nume character varying NOT NULL,
-    prenume character varying NOT NULL,
-    email character varying,
-    nr_telefon character varying(10),
-    imagine character varying,
-    id_cabinet integer NOT NULL
-);
-
-
-ALTER TABLE public.doctori OWNER TO postgres;
-
---
--- TOC entry 217 (class 1259 OID 16482)
--- Name: doctori_specializari; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.doctori_specializari (
-    id_doctor integer NOT NULL,
-    id_specializare integer NOT NULL
-);
-
-
-ALTER TABLE public.doctori_specializari OWNER TO postgres;
-
---
--- TOC entry 214 (class 1259 OID 16455)
--- Name: pacienti; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.pacienti (
-    id integer NOT NULL,
-    nume character varying NOT NULL,
-    prenume character varying NOT NULL,
-    adresa character varying,
-    email character varying NOT NULL,
-    parola character varying NOT NULL,
-    nr_telefon character varying(10),
-    data_nastere character varying(15) NOT NULL
-);
-
-
-ALTER TABLE public.pacienti OWNER TO postgres;
-
---
--- TOC entry 219 (class 1259 OID 16494)
--- Name: program_doctori; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.program_doctori (
-    id_doctor integer NOT NULL,
-    id integer NOT NULL,
-    zi date NOT NULL,
-    timp_inceput time without time zone NOT NULL,
-    timp_final time without time zone NOT NULL
-);
-
-
-ALTER TABLE public.program_doctori OWNER TO postgres;
-
---
--- TOC entry 220 (class 1259 OID 25163)
--- Name: programari; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.programari (
-    id integer NOT NULL,
-    id_doctor integer NOT NULL,
-    id_pacient integer NOT NULL,
-    data_programare date NOT NULL,
-    ora_programare time without time zone NOT NULL
-);
-
-
-ALTER TABLE public.programari OWNER TO postgres;
-
---
--- TOC entry 216 (class 1259 OID 16475)
--- Name: specializari; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.specializari (
-    id integer NOT NULL,
-    denumire character varying NOT NULL
-);
-
-
-ALTER TABLE public.specializari OWNER TO postgres;
-
---
--- TOC entry 3375 (class 0 OID 16487)
--- Dependencies: 218
--- Data for Name: cabinete; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.cabinete (id, denumire, etaj, imagine) FROM stdin;
-\.
-
-
---
--- TOC entry 3372 (class 0 OID 16468)
--- Dependencies: 215
--- Data for Name: doctori; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.doctori (id, nume, prenume, email, nr_telefon, imagine, id_cabinet) FROM stdin;
-\.
-
-
---
--- TOC entry 3374 (class 0 OID 16482)
--- Dependencies: 217
--- Data for Name: doctori_specializari; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.doctori_specializari (id_doctor, id_specializare) FROM stdin;
-\.
-
-
---
--- TOC entry 3371 (class 0 OID 16455)
--- Dependencies: 214
--- Data for Name: pacienti; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.pacienti (id, nume, prenume, adresa, email, parola, nr_telefon, data_nastere) FROM stdin;
-\.
-
-
---
--- TOC entry 3376 (class 0 OID 16494)
--- Dependencies: 219
--- Data for Name: program_doctori; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.program_doctori (id_doctor, id, zi, timp_inceput, timp_final) FROM stdin;
-\.
-
-
---
--- TOC entry 3377 (class 0 OID 25163)
--- Dependencies: 220
--- Data for Name: programari; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.programari (id, id_doctor, id_pacient, data_programare, ora_programare) FROM stdin;
-\.
-
-
---
--- TOC entry 3373 (class 0 OID 16475)
--- Dependencies: 216
--- Data for Name: specializari; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.specializari (id, denumire) FROM stdin;
-\.
-
-
---
--- TOC entry 3215 (class 2606 OID 25319)
--- Name: cabinete cabinete_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.cabinete
-    ADD CONSTRAINT cabinete_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3207 (class 2606 OID 25246)
--- Name: doctori doctori_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.doctori
-    ADD CONSTRAINT doctori_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3213 (class 2606 OID 25265)
--- Name: doctori_specializari doctori_specializari_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.doctori_specializari
-    ADD CONSTRAINT doctori_specializari_pkey PRIMARY KEY (id_doctor, id_specializare);
-
-
---
--- TOC entry 3205 (class 2606 OID 25233)
--- Name: pacienti pacients_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.pacienti
-    ADD CONSTRAINT pacients_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3217 (class 2606 OID 25371)
--- Name: program_doctori program_doctori_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.program_doctori
-    ADD CONSTRAINT program_doctori_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3219 (class 2606 OID 25287)
--- Name: programari programari_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.programari
-    ADD CONSTRAINT programari_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3209 (class 2606 OID 25340)
--- Name: specializari specializari_denumire_denumire1_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.specializari
-    ADD CONSTRAINT specializari_denumire_denumire1_key UNIQUE (denumire) INCLUDE (denumire);
-
-
---
--- TOC entry 3211 (class 2606 OID 25311)
--- Name: specializari specializari_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.specializari
-    ADD CONSTRAINT specializari_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3226 (class 2620 OID 25391)
--- Name: program_doctori a_trg_program_doctori_normalize_hours; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER a_trg_program_doctori_normalize_hours BEFORE INSERT ON public.program_doctori FOR EACH ROW EXECUTE FUNCTION public.normalize_hours();
-
-
---
--- TOC entry 3225 (class 2620 OID 25190)
--- Name: cabinete cabinete_maxid; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER cabinete_maxid BEFORE INSERT ON public.cabinete FOR EACH ROW EXECUTE FUNCTION public.maxid();
-
-
---
--- TOC entry 3223 (class 2620 OID 25188)
--- Name: doctori doctori_maxid; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER doctori_maxid BEFORE INSERT ON public.doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
-
-
---
--- TOC entry 3222 (class 2620 OID 25189)
--- Name: pacienti pacienti_maxid; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER pacienti_maxid BEFORE INSERT ON public.pacienti FOR EACH ROW EXECUTE FUNCTION public.maxid();
-
-
---
--- TOC entry 3227 (class 2620 OID 25387)
--- Name: program_doctori program_doctori_maxid; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER program_doctori_maxid BEFORE INSERT ON public.program_doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
-
-
---
--- TOC entry 3228 (class 2620 OID 25187)
--- Name: programari programari_maxid; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER programari_maxid BEFORE INSERT ON public.programari FOR EACH ROW EXECUTE FUNCTION public.maxid();
-
-
---
--- TOC entry 3224 (class 2620 OID 25229)
--- Name: specializari specializari_maxid; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER specializari_maxid BEFORE INSERT ON public.specializari FOR EACH ROW EXECUTE FUNCTION public.maxid();
-
-
---
--- TOC entry 3220 (class 2606 OID 25292)
--- Name: programari appointments_id_doctor_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.programari
-    ADD CONSTRAINT appointments_id_doctor_fkey FOREIGN KEY (id_doctor) REFERENCES public.doctori(id);
-
-
---
--- TOC entry 3221 (class 2606 OID 25301)
--- Name: programari appointments_id_pacient_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.programari
-    ADD CONSTRAINT appointments_id_pacient_fkey FOREIGN KEY (id_pacient) REFERENCES public.pacienti(id);
-
-
--- Completed on 2023-05-26 00:02:56
+-- Completed on 2023-05-27 14:02:36
 
 --
 -- PostgreSQL database dump complete
 --
-
