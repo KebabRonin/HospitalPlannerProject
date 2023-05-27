@@ -124,7 +124,6 @@ Date.prototype.format = function (mask, utc) {
 	return dateFormat(this, mask, utc);
 };
 
-console.log(ainfoel);
 function appendHtml(el, str) {
   var div = document.createElement('div');
   div.innerHTML = str;
@@ -135,35 +134,42 @@ function format_date(date) {
         var d = new Date(date);
         return d.format("dddd, mmmm d, yyyy");
 }
-
-var ainfoel = document.getElementById('appointment-info');
-
-fetch('/your_appointments')
-  .then(response => response.json())
-  .then(data => {
-    for(el of data) {
-        console.log(el);
-		((id_doctor, data_programare, ora_programare) => {
-		fetch('/doctors-info/'+id_doctor).then(response => response.json()).then(data => {
+async function load_appointments() {
+	var ainfoel = document.getElementById('appointment-info');
+	ainfoel.innerHTML = ''
+	var myCookie = document.cookie.split('userId=')
+	if (myCookie.length === 2) myCookie = myCookie.pop().split(';').shift();
+	else {
+		window.locatoion.href='/';
+	}
+	fetch('/appointments/'+myCookie, {method:"GET"})
+	.then(response => response.json())
+	.then(async data => {
+		console.log(data);
+		var resp;
+		for(el of data) {
+			//(el.id_doctor, el.data_programare, el.ora_programare)
+			resp = await fetch('/doctors-info/'+el.id_doctor, {method:"GET"});
+			var data = await resp.json();
 			let nume_doctor = "Dr. "+data.nume+" "+data.prenume;
-			console.log(data);
-			((nume_doctor, data_programare, ora_programare, id_cabinet) => {
-				fetch('/cabinete-info/'+id_cabinet).then(response => response.json()).then(data => {
-					ora_programare = ora_programare.split(':').slice(start=0, end=2).join(':');
-					appendHtml(ainfoel, `
-					<div class="appointment" id="appointment-info">
-						<div class="info">
-							<p>Doctor: ${nume_doctor}</p>
-							<p>Date: ${format_date(data_programare)}</p>
-							<p>Time: ${ora_programare}</p>
-							<p>Cabinet: ${data.denumire}, ${data.etaj}</p>
-						</div>
-					</div>`);}).catch(error => console.error('Failed to retrieve doctor information:', error));
-				}
-			)(nume_doctor, data_programare, ora_programare, data.id_cabinet);
-			}).catch(error => console.error('Failed to retrieve doctor information:', error))})(el.id_doctor, el.data_programare, el.ora_programare);
-    }
-  })
-  .catch(error => {
-    console.error('Failed to retrieve user information:', error);
-  });
+			//(nume_doctor, data_programare, ora_programare, data.id_cabinet)
+			resp = await fetch('/cabinet-info/'+data.id_cabinet, {method:"GET"});
+			var data2 = await resp.json();
+			var ora_programare = el.ora_programare.split(':').slice(start=0, end=2).join(':');
+			appendHtml(ainfoel, `
+			<div class="appointment" id="appointment-info">
+				<div class="info">
+					<p>Doctor: ${nume_doctor}</p>
+					<p>Date: ${format_date(el.data_programare)}</p>
+					<p>Time: ${ora_programare}</p>
+					<p>Cabinet: ${data2.denumire}, ${data2.etaj}</p>
+				</div>
+			</div>`);
+		}
+	})
+	.catch(error => {
+		console.error('Failed to retrieve user information:', error);
+	});
+}
+
+load_appointments();

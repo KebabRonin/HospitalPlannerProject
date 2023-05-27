@@ -1,7 +1,7 @@
 var selected_dates = [];
-var selected_doctor = -1;
-var selected_hour = -1;
-var selected_specializare = -1;
+var selected_doctor = -10;
+var selected_hour = -10;
+var selected_specializare = -10;
 
 function make_option(root, value, text) {
 	var concrete_option = document.createElement("option");
@@ -21,14 +21,16 @@ var update_funcs = {
 		.then((response) => response.json())
 		.then((data) => {
 			if (data.length > 0) {
-				make_option(doctorSelect, 0, "Any doctor");
+				if(data.length > 1) {
+					make_option(doctorSelect, -10, "Any doctor");
+				}
 
 				let index = 0;
 				data.forEach((doctor) => {
 					//de ce merge??
 					let current = make_option(doctorSelect, doctor.id, "Dr. "+doctor.nume+" "+doctor.prenume);
 					if(current.value == prevoius_selection) {
-						current.selected = index;
+						current.selected = true;
 					}
 					index++;
 				});
@@ -38,16 +40,20 @@ var update_funcs = {
 		})
 		.catch((error) => {
 			console.log(error);
+			doctorSelect.innerHTML = '';
 			make_option(doctorSelect, -1, "No doctors available");
 		});
 		
-		for(let i = 0; i < doctorSelect.options.length; i++) {
-			if (doctorSelect.options[i].value == prevoius_selection) {
-				doctorSelect.options.selectedIndex = i;
-				doctorSelect.options[i].selected = true;
-				break;
-			}
-		}
+		// for(let i = 0; i < doctorSelect.options.length; i++) {
+		// 	if (doctorSelect.options[i].value == prevoius_selection) {
+		// 		doctorSelect.options.selectedIndex = i;
+		// 		doctorSelect.options[i].selected = true;
+		// 		break;
+		// 	}
+		// }
+		doctorSelect.selectedIndex = 0
+		console.log(doctorSelect.selectedIndex)
+		console.log('Ran ' + 'doctor')
 	},
 	"specializare": function () {
 	var specSelect = document.getElementById("specializare");
@@ -59,7 +65,9 @@ var update_funcs = {
 		.then((data) => {
 
 			if (data.length > 0) {
-				make_option(specSelect, 0, "Any specialisation");
+				if(data.length > 1) {
+					make_option(specSelect, -10, "Any specialisation");
+				}
 
 				let index = 0;
 				data.forEach((specializare) => {
@@ -77,11 +85,15 @@ var update_funcs = {
 		})
 		.catch((error) => {
 			console.log(error);
+			specSelect.innerHTML = '';
 			make_option(specSelect, -1, "No specialisations available");
 		});
+		specSelect.selectedIndex = 0;
+		console.log('Ran ' + 'specializare')
 	},
 	"dates": function () {
 
+		console.log('Ran ' + 'dates')
 	},
 	"hour": function () {
 	var hourSelect = document.getElementById("hour");
@@ -92,7 +104,7 @@ var update_funcs = {
 	
 	if(selected_doctor!=-1) qstr.concat(selected_doctor);
 	if(selected_dates.length > 0) qstr.concat("&dates=").concat(selected_dates.map(d => [d.getDate(), d.getMonth(), d.getFullYear()].join("-")).join(","));
-
+	make_option(hourSelect, "any", "Any hour");
 	for (let i = 7; i <= 20; i++) {
 		let current = make_option(hourSelect, i+":00", i+":00");
 		if (prevoius_selection == current.value) {
@@ -134,6 +146,8 @@ var update_funcs = {
 				break;
 			}
 		}*/
+		hourSelect.selectedIndex = 0;
+		console.log('Ran ' + 'hour')
 	}
 
 }
@@ -175,20 +189,29 @@ var cal = new calendar(document.getElementById('calendar'), {
 });
 
 //WATCHES selected_dates, selected_doctors, selected_hours, selected_section
-update_event(null);
+for( i in update_funcs) {
+	update_funcs[i]();
+}
 
 function submit_form() {
 	var e = document.getElementById("appointment-form");
 
 	//confirm_dialog();
 
+	var myCookie = document.cookie.split('userId=')
+	if (myCookie.length === 2) myCookie = myCookie.pop().split(';').shift();
+	else {
+		window.href='/';
+	}
+
+
 	var dates_to_str = selected_dates.reduce((acc, current_date) => {
 		acc.push([current_date.getDate(),current_date.getMonth()+1,current_date.getFullYear()].join('-'));
 		return acc;
 	},[]);
 	var request = {"dates":dates_to_str, "specializare": selected_specializare,"doctor":selected_doctor, "hour":selected_hour};
-
-	fetch("/appointments", {method:"POST", headers: new Headers({'content-type': 'application/json'}),body:JSON.stringify(request)})
+	
+	fetch('/appointments/'+myCookie, {method:"POST", headers: new Headers({'content-type': 'application/json'}),body:JSON.stringify(request)})
 		.then((response) => {
 			console.log(JSON.stringify(request));
 			if(response.status != 200) {
@@ -198,6 +221,7 @@ function submit_form() {
 		})
 		.then((data) => {
 			alert("success");
+			window.location.href = '/your_appointments.html';
 		})
 		.catch((error) => {
 			console.log(error);
