@@ -7,13 +7,15 @@ public class Programare {
     private int id_pacient;
     private int id_doctor;
     private Date data_programare;
+    private String ora_programare;
 
     public Programare(){}
-    public Programare(int id, int id_pacient, int id_doctor, Date data_programare) {
+    public Programare(int id, int id_pacient, int id_doctor, Date data_programare, String ora_programare) {
         this.id = id;
         this.id_pacient = id_pacient;
         this.id_doctor = id_doctor;
         this.data_programare = data_programare;
+        this.ora_programare = ora_programare;
     }
 
     public int getId() {
@@ -45,6 +47,14 @@ public class Programare {
 
     public void setData_programare(Date data_programare) {
         this.data_programare = data_programare;
+    }
+
+    public String getOra_programare() {
+        return ora_programare;
+    }
+
+    public void setOra_programare(String ora_programare) {
+        this.ora_programare = ora_programare;
     }
 }
 

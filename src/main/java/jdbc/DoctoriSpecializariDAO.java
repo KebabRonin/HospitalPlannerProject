@@ -16,4 +16,28 @@ public class DoctoriSpecializariDAO {
             pstmt.executeUpdate();
         }
     }
+
+    public void update(Integer id_doctor, Integer id_specializare) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "UPDATE doctori_specializari SET id_specializare=? WHERE id_doctor=?")) {
+            pstmt.setInt(1, id_specializare);
+            pstmt.setInt(2, id_doctor);
+
+            pstmt.executeUpdate();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(int id_doctor) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "DELETE FROM doctori_specializari WHERE id_doctor = ?")) {
+            pstmt.setInt(1, id_doctor);
+            pstmt.executeUpdate();
+        }
+    }
+
 }

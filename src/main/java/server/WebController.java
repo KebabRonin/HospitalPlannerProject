@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -92,6 +93,46 @@ public class WebController {
         return connectedUsers.get(userId);
     }
 
+    @GetMapping(value = "/pacient-info/{id_pacient}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Pacient getPacientInfo(@PathVariable("id_pacient") Integer id_pacient) throws SQLException {
+        Pacient pacient = PacientDAO.findById(id_pacient);
+        return pacient;
+    }
+
+    @GetMapping(value = "/cabinet-info/{id_cabinet}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Cabinet getCabinetInfo(@PathVariable("id_cabinet") Integer id_cabinet) throws SQLException {
+        Cabinet cabinet = CabinetDAO.findById(id_cabinet);
+        return cabinet;
+    }
+
+    @GetMapping(value = "/doctors-info/{id_doctor}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Doctor getDoctorInfo(@PathVariable("id_doctor") Integer id_doctor) throws SQLException {
+        var doctor = new DoctorDAO();
+        return doctor.findById(id_doctor);
+    }
+
+    @GetMapping(value = "/doctor-appointments/{id_doctor}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Programare> getDoctorAppointmentsInfo(@PathVariable("id_doctor") Integer id_doctor) throws SQLException {
+        var programare = new ProgramareDAO();
+        return programare.findAllOfDoctorId(id_doctor);
+    }
+
+    @GetMapping(value = "/cabinet-doctor/{id_cabinet}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Doctor getDoctorsByCabinet(@PathVariable("id_cabinet") Integer id_cabinet) throws SQLException {
+        return DoctorDAO.findByCabinetId(id_cabinet);
+    }
+
+    @GetMapping(value = "/all-appointments", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Programare> getAllAppointments() throws SQLException {
+        return ProgramareDAO.findAll();
+    }
+
     @PostMapping("/add-cabinet")
     @ResponseBody
     public String addCabinet(@RequestParam("cabinet-name") String cabinetName,
@@ -103,7 +144,7 @@ public class WebController {
                 return "Cabinet already exists.";
             }
             String fileName = cabinetPicture.getOriginalFilename();
-            String folderPath = "C:\\Users\\KebabWarrior\\Desktop\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
+            String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
             String filePath = folderPath + fileName;
 
             cabinetPicture.transferTo(new File(filePath));
@@ -125,7 +166,6 @@ public class WebController {
                             @RequestParam("last-name") String lastName,
                             @RequestParam("specialization") Integer specialization,
                             @RequestParam("cabinet") Integer cabinet,
-                            @RequestParam("schedule") String schedule,
                             @RequestParam("phone") String phone,
                             @RequestParam("email") String email,
                             @RequestParam("image") MultipartFile image) {
@@ -140,14 +180,11 @@ public class WebController {
 
             image.transferTo(new File(filePath));
 
-            doctor.create(firstName,lastName,phone,email,filePath);
+            doctor.create(firstName,lastName,phone,email,filePath,cabinet);
             int id_doctor = doctor.findByEmail(email);
 
             var doctorSpecializare = new DoctoriSpecializariDAO();
             doctorSpecializare.create(id_doctor, specialization);
-
-            var programDoctor = new ProgramDoctorDAO();
-            programDoctor.create(id_doctor,cabinet,schedule);
 
             return "Doctor added successfully!";
         } catch (IOException e) {
@@ -156,6 +193,75 @@ public class WebController {
         } catch (SQLException e) {
             e.printStackTrace();
             return "Failed to add the doctor.";
+        }
+    }
+
+    @DeleteMapping("/delete-doctor/{id}")
+    @ResponseBody
+    public String deleteDoctor(@PathVariable("id") Integer id_doctor) {
+        try {
+            var doctor = new DoctorDAO();
+            doctor.delete(id_doctor);
+
+            var doctorSpecializare = new DoctoriSpecializariDAO();
+            doctorSpecializare.delete(id_doctor);
+
+            return "Doctor deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the doctor.";
+        }
+    }
+
+    @DeleteMapping("/delete-cabinet/{id_cabinet}")
+    @ResponseBody
+    public String deleteCabinet(@PathVariable("id_cabinet") Integer id_cabinet) {
+        try {
+            CabinetDAO.delete(id_cabinet);
+            DoctorDAO.update(id_cabinet);
+
+            return "Cabinet deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the cabinet.";
+        }
+    }
+
+    @PostMapping("/update-doctor")
+    @ResponseBody
+    public String updateDoctor(@RequestParam("id") Integer id,
+                            @RequestParam("first-name") String firstName,
+                            @RequestParam("last-name") String lastName,
+                            @RequestParam("specialization") Integer specialization,
+                            @RequestParam("cabinet") Integer cabinet,
+                            @RequestParam("phone") String phone,
+                            @RequestParam("email") String email,
+                            @RequestParam("image") MultipartFile image) {
+        try {
+            String fileName = image.getOriginalFilename();
+            if(!Objects.equals(fileName, "")){
+                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
+                String filePath = folderPath + fileName;
+                image.transferTo(new File(filePath));
+
+                var doctor = new DoctorDAO();
+                doctor.update(id,firstName,lastName,phone,email,filePath,cabinet);
+            }
+            else{
+                var doctor = new DoctorDAO();
+                doctor.update(id,firstName,lastName,phone,email,cabinet);
+            }
+
+            var doctorSpecializare = new DoctoriSpecializariDAO();
+            doctorSpecializare.update(id, specialization);
+
+            return "Doctor edited successfully!";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Failed upload the file.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed edit the doctor.";
         }
     }
 

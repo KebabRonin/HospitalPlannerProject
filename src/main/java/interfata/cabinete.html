@@ -68,10 +68,6 @@
         <h1 id="cabinets-title">Cabinets</h1>
         <div id="cabinet-list"></div>
 
-        <div id="text-and-button" class="centered-text">
-          <p id="no-cabinets-message">No cabinets at the moment.</p>
-        </div>
-
         <div id="add-cabinet-button">
           <button id="add-cabinet-button" onclick="showCabinetForm()">
             Add cabinet
@@ -79,10 +75,10 @@
         </div>
 
         <div id="cabinet-form" class="cabinet-form">
-          <h2>Add a cabinet</h2>
+          <h2 id="form-title">Add a cabinet</h2>
           <form
             id="add-cabinet-form"
-            onsubmit="event.preventDefault(); addCabinet();"
+            onsubmit="event.preventDefault();"
           >
             <div class="form-group">
               <label for="cabinet-name">Cabinet Name</label>
@@ -105,16 +101,15 @@
                 name="cabinet-picture"
                 accept="image/*"
                 onchange="handleFileInputChange(this)"
-                required
               />
               <label for="cabinet-picture" class="file-input-label"
                 >Choose File</label
               >
               <span id="file-name" class="file-name"></span>
             </div>
-            <div class="form-group">
+            <div class="specific-form-group" id="specific-form-group">
               <button class="back-btn" type="button" onclick="goBack()">Back</button>
-              <button class="add-btn" type="submit">Add</button>
+              <button class="add-btn" id="add-button" type="button" onclick="addCabinet()">Add</button>
             </div>
           </form>
         </div>

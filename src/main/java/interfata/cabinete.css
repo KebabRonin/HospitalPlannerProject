@@ -1,156 +1,182 @@
-body{
+body {
   background-image: url(background_cabinete.jpg);
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
 }
 
-h1{
+h1 {
   margin-left: 30px;
   text-align: left;
   font-size: 50px;
   font-weight: bold;
 }
 
-.content{
+.content {
   height: 100%;
   width: 100%;
-  
+
 }
 
 .centered-text {
-      text-align: center;
-      margin-top: 10%;
-      font-size: 30px;
-    }
+  text-align: center;
+  margin-top: 10%;
+  font-size: 30px;
+}
 
-    #add-cabinet-button {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
+#add-cabinet-button {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  margin-top: 13px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-right: 30px;
+}
 
-    #add-cabinet-button button {
-      background-color: green;
-      color: white;
-      font-size: 20px;
-      padding: 15px 30px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+#add-cabinet-button button {
+  background-color: green;
+  color: white;
+  font-size: 20px;
+  padding: 5px 50px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
 
-    .cabinet-form {
-      display: none;
-      margin: 100px auto;
-      max-width: 400px;
-      padding: 40px;
-      border: 4px solid black;
-      text-align: center;
-      background-color: white;
-      border-radius: 5px;
-  }
-  
-      .cabinet-form h2 {
-        font-size: 25px;
-        font-weight: bold;
-        margin-top: 0;
-        margin-bottom: 20px;
-      }
-  
-      .cabinet-form .form-group {
-        margin-bottom: 10px;
-      }
-  
-      .cabinet-form .form-group label {
-        display: block;
-        text-align: left;
-        margin-bottom: 5px;
-        font-weight: bold;
-      }
-  
-      .cabinet-form .form-group input[type="text"],
-      .cabinet-form .form-group input[type="number"],
-      .cabinet-form .form-group input[type="email"] {
-        width: 100%;
-        padding: 8px;
-      }
-  
-      .cabinet-form .form-group input[type="file"] {
-        display: none;
-      }
-  
-      .cabinet-form .form-group .file-input-label {
-        display: inline-block;
-        padding: 8px 16px;
-        background-color: green;
-        color: white;
-        font-size: 14px;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-  
-      .cabinet-form .form-group .file-input-label:hover {
-        background-color: darkgreen;
-      }
-  
-      .cabinet-form .form-group .file-name {
-        display: inline-block;
-        margin-left: 10px;
-        font-size: 14px;
-      }
-  
-      .add-btn {
-        margin-top: 10px;
-        background-color: green;
-        color: white;
-        font-size: 16px;
-        padding: 10px 20px;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-      }
+.cabinet-form {
+  display: none;
+  margin: 100px auto;
+  max-width: 400px;
+  padding: 40px;
+  border: 4px solid black;
+  text-align: center;
+  background-color: white;
+  border-radius: 5px;
+}
 
-      .back-btn {
-        margin-top: 10px;
-        background-color: red;
-        color: white;
-        font-size: 16px;
-        padding: 10px 15px;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-      }
+.cabinet-form h2 {
+  font-size: 25px;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
 
-      #cabinet-list {
-        display: flex;
-        flex-wrap: wrap;
-      }
-      
-      .cabinet-box {
-        width: 20%;
-        padding: 20px;
-        box-sizing: border-box;
-        border: 5px solid black;
-        border-radius: 10px;
-        background-color: pink;
-        margin: 10px 30px 10px 30px;
-        display: flex;
-      }
-      
-      .cabinet-box img {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        margin-right: 20px;
-      }
-      
-      .cabinet-details {
-        display: flex;
-        flex-direction: column;
-      }
-      
-      .cabinet-name,
-      .cabinet-floor {
-        margin: 0;
-      }
+.cabinet-form .form-group {
+  margin-bottom: 10px;
+}
+
+.cabinet-form .form-group label {
+  display: block;
+  text-align: left;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.cabinet-form .form-group input[type="text"],
+.cabinet-form .form-group input[type="number"],
+.cabinet-form .form-group input[type="email"] {
+  width: 100%;
+  padding: 8px;
+}
+
+.cabinet-form .form-group input[type="file"] {
+  display: none;
+}
+
+.cabinet-form .form-group .file-input-label {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: green;
+  color: white;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cabinet-form .form-group .file-input-label:hover {
+  background-color: darkgreen;
+}
+
+.cabinet-form .form-group .file-name {
+  display: inline-block;
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+.add-btn {
+  margin-top: 10px;
+  background-color: green;
+  color: white;
+  font-size: 16px;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.back-btn {
+  margin-top: 10px;
+  background-color: red;
+  color: white;
+  font-size: 16px;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+
+
+
+#cabinet-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+#cabinet-list-table th,
+#cabinet-list-table td {
+  padding: 5px;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+}
+
+#cabinet-list-table td {
+  background-color: white;
+}
+
+#cabinet-list-table th {
+  background-color: #f2f2f2;
+}
+
+#cabinet-list-table img {
+  max-width: 80px;
+  max-height: 80px;
+}
+
+.edit-cabinet {
+  padding: 6px 12px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-cabinet:hover {
+  background-color: #45a049;
+}
+
+.delete-btn {
+  margin-top: 10px;
+  background-color: red;
+  color: white;
+  font-size: 16px;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}

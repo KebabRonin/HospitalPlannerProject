@@ -5,19 +5,93 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DoctorDAO {
-    public void create(String nume, String prenume, String nr_telefon, String email, String image) throws SQLException {
+    public void create(String nume, String prenume, String nr_telefon, String email, String image, Integer id_cabinet) throws SQLException {
         try (Connection con = Database.getConnection();
         PreparedStatement pstmt = con.prepareStatement(
-                "insert into doctori (nume,prenume,nr_telefon,email,image) values (?,?,?,?,?)")) {
+                "insert into doctori (nume,prenume,nr_telefon,email,image,id_cabinet) values (?,?,?,?,?,?)")) {
             pstmt.setString(1, nume);
             pstmt.setString(2, prenume);
             pstmt.setString(3, nr_telefon);
             pstmt.setString(4, email);
             pstmt.setString(5, image);
+            pstmt.setInt(6,id_cabinet);
 
             pstmt.executeUpdate();
         }
     }
+
+    public void delete(int doctorId) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "DELETE FROM doctori WHERE id = ?")) {
+            pstmt.setInt(1, doctorId);
+            pstmt.executeUpdate();
+        }
+    }
+
+    public void update(Integer id, String nume, String prenume, String nr_telefon, String email, String image, Integer id_cabinet) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "UPDATE doctori SET nume=?, prenume=?, nr_telefon=?, email=?, image=?, id_cabinet=? WHERE id=?")) {
+            pstmt.setString(1, nume);
+            pstmt.setString(2, prenume);
+            pstmt.setString(3, nr_telefon);
+            pstmt.setString(4, email);
+            pstmt.setString(5, image);
+            pstmt.setInt(6, id_cabinet);
+            pstmt.setInt(7, id);
+
+            pstmt.executeUpdate();
+        }
+    }
+    public void update(Integer id, String nume, String prenume, String nr_telefon, String email, Integer id_cabinet) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "UPDATE doctori SET nume=?, prenume=?, nr_telefon=?, email=?, id_cabinet=? WHERE id=?")) {
+            pstmt.setString(1, nume);
+            pstmt.setString(2, prenume);
+            pstmt.setString(3, nr_telefon);
+            pstmt.setString(4, email);
+            pstmt.setInt(5, id_cabinet);
+            pstmt.setInt(6, id);
+
+            pstmt.executeUpdate();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void update(Integer id_cabinet) throws SQLException {
+        Connection con = Database.getConnection();
+        try {
+            List<Integer> doctorIds = new ArrayList<>();
+            try (PreparedStatement fetchStmt = con.prepareStatement(
+                    "SELECT id FROM doctori WHERE id_cabinet=?")) {
+                fetchStmt.setInt(1, id_cabinet);
+                ResultSet resultSet = fetchStmt.executeQuery();
+                while (resultSet.next()) {
+                    int doctorId = resultSet.getInt("id");
+                    doctorIds.add(doctorId);
+                }
+            }
+
+            try (PreparedStatement updateStmt = con.prepareStatement(
+                    "UPDATE doctori SET id_cabinet=0 WHERE id=?")) {
+                for (int doctorId : doctorIds) {
+                    updateStmt.setInt(1, doctorId);
+                    updateStmt.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (con != null) {
+                con.close();
+            }
+        }
+    }
+
     public int findByName(String name) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
@@ -75,6 +149,30 @@ public class DoctorDAO {
             }
         }
     }
+
+    public static Doctor findByCabinetId(int id_cabinet) throws SQLException {
+        try (Connection con = Database.getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select id, nume, prenume, nr_telefon, email, image from doctori where id_cabinet='" + id_cabinet + "'")) {
+            if (rs.next()) {
+                int id = rs.getInt("id");
+                String nume = rs.getString("nume");
+                String prenume = rs.getString("prenume");
+                String nr_telefon = rs.getString("nr_telefon");
+                String email = rs.getString("email");
+                String image = rs.getString("image");
+
+                var specializare = new SpecializareDAO();
+                var specializari = specializare.findSpecializariByDoctorId(id);
+
+                return new Doctor(id,nume, prenume, nr_telefon, email,image,specializari,id_cabinet);
+            } else {
+                return null;
+            }
+        }
+    }
+
     public int findByEmail(String email) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement("select id from doctori where email=(?)");
@@ -82,6 +180,16 @@ public class DoctorDAO {
             pstmt.setString(1, email);
             ResultSet rs = pstmt.executeQuery();
             return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+
+    public String findEmailById(Integer id_doctor) throws SQLException {
+        try (Connection con = Database.getConnection();
+             PreparedStatement pstmt = con.prepareStatement("select email from doctori where id=(?)");
+        ) {
+            pstmt.setInt(1, id_doctor);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next() ? rs.getString(1) : null;
         }
     }
 }

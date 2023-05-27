@@ -4,6 +4,7 @@
     <title>HospitalPlanner</title>
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link rel="stylesheet" type="text/css" href="doctori.css" />
+    <link rel="stylesheet" href="calendar.css" />
     <link rel="icon" href="hospitalplanner-website-favicon-color.png" />
   </head>
   <body>
@@ -67,10 +68,7 @@
       <div class="content" style="position: absolute; height: 91%">
         <h1 id="doctors-title">Doctors</h1>
         <div id="doctor-list"></div>
-
-        <div id="text-and-button" class="centered-text">
-          <p id="no-cabinets-message">No doctors at the moment.</p>
-        </div>
+        <div id="appointments-list"></div>
 
         <div id="add-doctor-button">
           <button id="add-doctor-button" onclick="showDoctorForm()">
@@ -79,33 +77,46 @@
         </div>
 
         <div id="doctor-form" class="cabinet-form">
-          <h2>Add a Doctor</h2>
-          <form id="add-doctor-form" onsubmit="event.preventDefault(); addDoctor();">
+          <h2 id="form-title">Add a Doctor</h2>
+          <form
+            id="add-doctor-form"
+            onsubmit="event.preventDefault();"
+          >
             <div class="form-group">
               <label for="doctor-first-name">First Name</label>
-              <input type="text" id="doctor-first-name" name="first-name" required />
+              <input
+                type="text"
+                id="doctor-first-name"
+                name="first-name"
+                required
+              />
             </div>
             <div class="form-group">
               <label for="doctor-last-name">Last Name</label>
-              <input type="text" id="doctor-last-name" name="last-name" required />
+              <input
+                type="text"
+                id="doctor-last-name"
+                name="last-name"
+                required
+              />
             </div>
             <div class="form-group">
-              <label for="doctor-specialization">Specialization</label>
-              <select id="doctor-specialization" class="doctor-choose" name="specialization" required>
-              </select>
+              <label for="doctor-specialization-name">Specialization</label>
+              <select
+                id="doctor-specialization"
+                class="doctor-choose"
+                name="specialization"
+                required
+              ></select>
             </div>
             <div class="form-group">
               <label for="doctor-cabinet-name">Cabinet</label>
-              <select id="doctor-cabinet" class="doctor-choose" name="cabinet" required>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="doctor-schedule">Schedule</label>
-              <select id="doctor-schedule" class="doctor-choose" name="schedule" required>
-                <option value="">Select a Schedule</option>
-                <option value="7:00-15:00">7:00-15:00 -> 15:00-23:00</option>
-                <option value="15:00-23:00">15:00-23:00 -> 7:00-15:00</option>
-              </select>
+              <select
+                id="doctor-cabinet"
+                class="doctor-choose"
+                name="cabinet"
+                required
+              ></select>
             </div>
             <div class="form-group">
               <label for="doctor-phone">Phone Number</label>
@@ -123,15 +134,70 @@
                 accept="image/*"
                 onchange="handleFileInputChange(this)"
                 name="image"
-                required
               />
               <label for="doctor-picture" class="file-input-label"
                 >Choose File</label
               >
               <span id="file-name" class="file-name"></span>
             </div>
+            <div id="specific-form-group" class="form-group">
+              <button class="back-btn" type="button" onclick="goBack()">
+                Back
+              </button>
+              <button class="add-btn" id="add-button" type="button" onclick="addDoctor()">Add</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="shift-form" class="cabinet-form">
+          <h2>Add a shift</h2>
+          <form
+            id="add-shift-form"
+            onsubmit="event.preventDefault(); addshift();"
+          >
+            <div id="calendar"></div>
             <div class="form-group">
-              <button class="back-btn" type="button" onclick="goBack()">Back</button>
+              <label for="shift-specialization">Start Hour</label>
+              <select
+                id="shift-specialization"
+                class="shift-choose"
+                name="specialization"
+                required
+              >
+                <option value="-1">Choose a starting hour</option>
+                <option value="6">6:00</option>
+                <option value="7">7:00</option>
+                <option value="8">8:00</option>
+                <option value="9">9:00</option>
+                <option value="10">10:00</option>
+                <option value="11">11:00</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="shift-cabinet-name">End Hour</label>
+              <select
+                id="shift-cabinet"
+                class="shift-choose"
+                name="cabinet"
+                required
+              >
+                <option value="-1">Choose an ending hour</option>
+                <option value="14">14:00</option>
+                <option value="15">15:00</option>
+                <option value="16">16:00</option>
+                <option value="17">17:00</option>
+                <option value="18">18:00</option>
+                <option value="19">19:00</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button
+                class="back-btn"
+                type="button"
+                onclick="goBackFromShift()"
+              >
+                Back
+              </button>
               <button class="add-btn" type="submit">Add</button>
             </div>
           </form>
@@ -139,5 +205,7 @@
       </div>
     </main>
     <script src="doctori.js"></script>
+    <script src="calendar.js"></script>
+    <script src="calendar_range.js"></script>
   </body>
 </html>

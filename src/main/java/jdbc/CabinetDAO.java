@@ -16,6 +16,15 @@ public class CabinetDAO {
         }
     }
 
+    public static void delete(int id_cabinet) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "DELETE FROM cabinete WHERE id = ?")) {
+            pstmt.setInt(1, id_cabinet);
+            pstmt.executeUpdate();
+        }
+    }
+
     public List<String> findCabineteByDoctorId(int id_doctor) throws SQLException{
         List<String> cabinete = new ArrayList<>();
         try (Connection con = Database.getConnection();
@@ -63,10 +72,10 @@ public class CabinetDAO {
                      "select id from cabinete where denumire=(?)")) {
             pstmt.setString(1, name);
             ResultSet rs = pstmt.executeQuery();
-            return rs.next() ? rs.getInt(1) : null;
+            return rs.next() ? rs.getInt(1) : 0;
         }
     }
-    public Cabinet findById(int id) throws SQLException {
+    public static Cabinet findById(int id) throws SQLException {
 
         try (Connection con = Database.getConnection();
              Statement stmt = con.createStatement();

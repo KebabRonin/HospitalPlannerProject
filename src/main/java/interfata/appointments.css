@@ -1,0 +1,32 @@
+#appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  #appointments-table th,
+  #appointments-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #167ffe;
+  }
+
+  #appointments-table td{
+    background-color: #43ddff;
+  }
+  
+  #appointments-table th {
+    background-color: #167ffe;
+  }
+  
+  .edit-appointment {
+    padding: 5px 10px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .edit-appointment:hover {
+    background-color: #45a049;
+  }

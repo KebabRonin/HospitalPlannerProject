@@ -26,7 +26,7 @@ public class PacientDAO{
             return rs.next() ? rs.getInt(1) : null;
         }
     }
-    public Pacient findById(int id) throws SQLException {
+    public static Pacient findById(int id) throws SQLException {
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(

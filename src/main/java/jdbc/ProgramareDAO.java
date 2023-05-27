@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProgramareDAO {
-    public void create(int id, int id_pacient, int id_doctor, int id_cabinet, Date data_programare) throws SQLException {
+    public void create(int id_pacient, int id_doctor, Date data_programare) throws SQLException {
         try (Connection con = Database.getConnection();
         PreparedStatement pstmt = con.prepareStatement(
                 "insert into programari (id_pacient, id_doctor, data_programare) values (?,?,?,?,?)")) {
@@ -20,12 +20,48 @@ public class ProgramareDAO {
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "select id, id_pacient, id_doctor, data_programare from programari where id_pacient='" + id_pacient + "'")) {
+                     "select id, id_doctor, data_programare, ora_programare from programari where id_pacient='" + id_pacient + "'")) {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int id_doctor = rs.getInt("id_doctor");
                 Date data_programare = rs.getDate("data_programare");
-                rez.add(new Programare(id,id_pacient, id_doctor, data_programare));
+                String ora_programare = rs.getString("ora_programare");
+                rez.add(new Programare(id,id_pacient, id_doctor, data_programare,ora_programare));
+            }
+            return rez;
+        }
+    }
+
+    public List<Programare> findAllOfDoctorId(int id_doctor) throws SQLException {
+        List<Programare> rez = new ArrayList<>();
+        try (Connection con = Database.getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select id, id_pacient, data_programare, ora_programare from programari where id_doctor='" + id_doctor + "'")) {
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                int id_pacient = rs.getInt("id_pacient");
+                Date data_programare = rs.getDate("data_programare");
+                String ora_programare = rs.getString("ora_programare");
+                rez.add(new Programare(id,id_doctor, id_pacient, data_programare, ora_programare));
+            }
+            return rez;
+        }
+    }
+
+    public static List<Programare> findAll() throws SQLException {
+        List<Programare> rez = new ArrayList<>();
+        try (Connection con = Database.getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select id, id_doctor, id_pacient, data_programare, ora_programare from programari")) {
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                int id_doctor = rs.getInt("id_doctor");
+                int id_pacient = rs.getInt("id_pacient");
+                Date data_programare = rs.getDate("data_programare");
+                String ora_programare = rs.getString("ora_programare");
+                rez.add(new Programare(id,id_doctor, id_pacient, data_programare, ora_programare));
             }
             return rez;
         }
