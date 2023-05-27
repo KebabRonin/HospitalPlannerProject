@@ -21,7 +21,7 @@ public class ProgramareDAO {
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "select id, id_doctor, data_programare, ora_programare from programari where id_pacient='" + id_pacient + "'")) {
+                     "select id, id_doctor, data_programare, ora_programare from programari where id_pacient='" + id_pacient + "' order by data_programare asc, ora_programare asc")) {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int id_doctor = rs.getInt("id_doctor");
@@ -38,7 +38,7 @@ public class ProgramareDAO {
         try (Connection con = Database.getConnection();
              Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "select id, id_pacient, data_programare, ora_programare from programari where id_doctor='" + id_doctor + "'")) {
+                     "select id, id_pacient, data_programare, ora_programare from programari where id_doctor='" + id_doctor + "' order by data_programare asc, ora_programare asc")) {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int id_pacient = rs.getInt("id_pacient");
@@ -55,7 +55,7 @@ public class ProgramareDAO {
         try (Connection con = Database.getConnection();
              Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "select id, id_doctor, id_pacient, data_programare, ora_programare from programari")) {
+                     "select id, id_doctor, id_pacient, data_programare, ora_programare from programari order by data_programare asc, ora_programare asc")) {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int id_doctor = rs.getInt("id_doctor");
