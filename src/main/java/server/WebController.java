@@ -17,12 +17,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -144,7 +144,7 @@ public class WebController {
                 return "Cabinet already exists.";
             }
             String fileName = cabinetPicture.getOriginalFilename();
-            String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
+            String folderPath = "C:\\Users\\KebabWarrior\\Desktop\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
             String filePath = folderPath + fileName;
 
             cabinetPicture.transferTo(new File(filePath));
@@ -175,7 +175,7 @@ public class WebController {
                 return "Doctor already exists.";
             }
             String fileName = image.getOriginalFilename();
-            String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
+            String folderPath = "C:\\Users\\KebabWarrior\\Desktop\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
             String filePath = folderPath + fileName;
 
             image.transferTo(new File(filePath));
@@ -227,6 +227,28 @@ public class WebController {
         }
     }
 
+    @GetMapping(value="/program-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String getProgram(@RequestParam(value = "dates", required = false)String datesLStr, @RequestParam(value = "doctors", required = false) String docsLStr) throws SQLException, java.text.ParseException {
+        List<Date> dates = new LinkedList<>();
+        SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+        String[] sub = datesLStr.split(",");
+        for (String str : sub) {
+            dates.add(new java.sql.Date(d.parse(str).getTime()));
+        }
+
+        int[] doctor_ids;
+        sub = docsLStr.split(",");
+        doctor_ids = Arrays.stream(sub).mapToInt(Integer::parseInt).toArray();
+
+        System.out.println(dates.size());
+        dates.stream().forEach((date) -> System.out.println(date));
+
+        System.out.println(doctor_ids.length);
+        Arrays.stream(doctor_ids).forEach((id) -> System.out.println(id));
+        return "";
+    }
+
     @PostMapping("/update-doctor")
     @ResponseBody
     public String updateDoctor(@RequestParam("id") Integer id,
@@ -265,19 +287,6 @@ public class WebController {
         }
     }
 
-
-    @GetMapping(value = "/doctors", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public String get_doctors() {
-        try {
-            var doctori = new DoctorDAO();
-            return doctori.findAll().toString();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve doctor information.");
-        }
-    }
-
     @GetMapping(value = "/your_appointments", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Programare> getUserAppointments(@CookieValue("userId") int userId) {
@@ -287,6 +296,19 @@ public class WebController {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve doctor information.");
         }
+    }
+
+    @PostMapping(value = "/appointments", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public void makeAppointment(@CookieValue("userId") int userId, @RequestBody RequestProgramare request) throws ParseException, SQLException {
+        System.out.println(request);
+        ProgramareDAO prog = new ProgramareDAO();
+
+        if(request.getHour() == null) {
+            request.setHour("01:01");
+        }
+
+        prog.create(userId, request.getDoctor(), request.getDates().get(0), request.getHour());
     }
 
     @PostMapping("/login")

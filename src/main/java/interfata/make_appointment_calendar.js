@@ -1,79 +1,206 @@
 var selected_dates = [];
-var div = document.getElementById('calendar');
-var cal = new calendar(div, {
-	onDayClick: function(date, evts){
-		if(!!selected_dates.find(d => d.getTime() === date.getTime())){ 
+var selected_doctor = -1;
+var selected_hour = -1;
+var selected_specializare = -1;
+
+function make_option(root, value, text) {
+	var concrete_option = document.createElement("option");
+	concrete_option.textContent = text;
+	concrete_option.setAttribute("value", value);
+	root.appendChild(concrete_option);
+	return concrete_option;
+}
+var update_funcs = {
+	"doctor": function () {
+	var doctorSelect = document.getElementById("doctor");
+	var prevoius_selection = doctorSelect.value;
+	doctorSelect.textContent = '';
+
+
+	fetch("/doctors-info")
+		.then((response) => response.json())
+		.then((data) => {
+			if (data.length > 0) {
+				make_option(doctorSelect, 0, "Any doctor");
+
+				let index = 0;
+				data.forEach((doctor) => {
+					//de ce merge??
+					let current = make_option(doctorSelect, doctor.id, "Dr. "+doctor.nume+" "+doctor.prenume);
+					if(current.value == prevoius_selection) {
+						current.selected = index;
+					}
+					index++;
+				});
+			} else {
+				make_option(doctorSelect, -1, "No doctors available");
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+			make_option(doctorSelect, -1, "No doctors available");
+		});
+		
+		for(let i = 0; i < doctorSelect.options.length; i++) {
+			if (doctorSelect.options[i].value == prevoius_selection) {
+				doctorSelect.options.selectedIndex = i;
+				doctorSelect.options[i].selected = true;
+				break;
+			}
+		}
+	},
+	"specializare": function () {
+	var specSelect = document.getElementById("specializare");
+	var prevoius_selection = specSelect.value;
+	specSelect.textContent = '';
+
+	fetch("/specializari-info")
+		.then((response) => response.json())
+		.then((data) => {
+
+			if (data.length > 0) {
+				make_option(specSelect, 0, "Any specialisation");
+
+				let index = 0;
+				data.forEach((specializare) => {
+					//de ce merge??
+					let current = make_option(specSelect, specializare.id, specializare.denumire);
+					if(current.value == prevoius_selection) {
+						current.selected = index;
+					}
+					index++;
+				}
+				);
+			} else {
+				make_option(specSelect, -1, "No specialisations available");
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+			make_option(specSelect, -1, "No specialisations available");
+		});
+	},
+	"dates": function () {
+
+	},
+	"hour": function () {
+	var hourSelect = document.getElementById("hour");
+	var prevoius_selection = hourSelect.value;
+	hourSelect.textContent = '';
+	
+	var qstr = "?";
+	
+	if(selected_doctor!=-1) qstr.concat(selected_doctor);
+	if(selected_dates.length > 0) qstr.concat("&dates=").concat(selected_dates.map(d => [d.getDate(), d.getMonth(), d.getFullYear()].join("-")).join(","));
+
+	for (let i = 7; i <= 20; i++) {
+		let current = make_option(hourSelect, i+":00", i+":00");
+		if (prevoius_selection == current.value) {
+			current.selected = true;
+		}
+		make_option(hourSelect, i+":30", i+":30");
+		if (prevoius_selection == current.value) {
+			current.selected = true;
+		}
+	}
+
+	/*fetch("/program-info" + qstr)
+		.then((response) => response.json())
+		.then((data) => {
+			
+			hourSelect.textContent = '';
+
+			if (data.length > 0) {
+				make_option(hourSelect, 0, "Any hour");
+
+				//data.forEach((specializare) => make_option(hourSelect, , ));
+				for (let i = 7; i <= 20; i++) {
+					make_option(hourSelect, i+":00", i+":00");
+					make_option(hourSelect, i+":30", i+":30");
+				}
+			} else {
+				make_option(hourSelect, -1, "No hours available");
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+			make_option(hourSelect, -1, "No hours available");
+		});
+
+		for(let i = 0; i < hourSelect.options.length; i++) {
+			if (hourSelect.options[i].value == prevoius_selection) {
+				hourSelect.options.selectedIndex = i;
+				hourSelect.options[i].selected = true;
+				break;
+			}
+		}*/
+	}
+
+}
+
+function update_event(func) {
+	var e = document.getElementById(func);
+	if(func in update_funcs) {
+		eval('selected_'+func+' = e.options[e.selectedIndex].value;');
+		console.log('selected_'+func+' '+eval('selected_'+func))
+	}
+
+	console.log(func + " chosen");
+	for( i in update_funcs) {
+		if (i != func) {
+			update_funcs[i]();
+			console.log('Ran ' + i)
+		}
+	}
+}
+
+
+var cal = new calendar(document.getElementById('calendar'), {
+	onDayClick: function (date, evts) {
+		if (!!selected_dates.find(d => d.getTime() === date.getTime())) {
 			cal.unselectDate(date);
 			selected_dates = selected_dates.filter(d => d.getTime() !== date.getTime());
-		}else {
+		} else {
 			cal.selectDate(date);
 			selected_dates.push(date);
 		}
 		console.log(selected_dates);
+		update_event('calendar')
 	},
-	onMonthChanged: function() {
+	onMonthChanged: function () {
 		for (let i = 0; i < selected_dates.length; i++) {
 			cal.selectDate(selected_dates[i]);
 		}
 	}
 });
 
+//WATCHES selected_dates, selected_doctors, selected_hours, selected_section
+update_event(null);
 
-fetch("/doctors-info")
-  .then((response) => response.json())
-  .then((data) => {
-    var doctorSelect = document.getElementById("doctor");
-	doctorSelect.textContent = '';
+function submit_form() {
+	var e = document.getElementById("appointment-form");
 
-	var concrete_option;
+	//confirm_dialog();
 
-    if (data.length > 0) {
-        concrete_option = document.createElement("option");
-		concrete_option.textContent = "Any Doctor";
-		concrete_option.setAttribute("value", "any");
-		doctorSelect.appendChild(concrete_option);
-      
-      data.forEach((doctor) => {
-        concrete_option = document.createElement("option");
-		let d_name = doctor.nume + " " + doctor.prenume;
-		concrete_option.textContent = "Dr. " + d_name;
-		concrete_option.setAttribute("value", d_name);
-		doctorSelect.appendChild(concrete_option);
-      });
-    } else {
-		concrete_option = document.createElement("option");
-		concrete_option.textContent = "No doctors available";
-		concrete_option.setAttribute("value", "none");
-	  	doctorSelect.appendChild(concrete_option);
-    }
-  })
-  .catch((error) => console.log(error));
+	var dates_to_str = selected_dates.reduce((acc, current_date) => {
+		acc.push([current_date.getDate(),current_date.getMonth()+1,current_date.getFullYear()].join('-'));
+		return acc;
+	},[]);
+	var request = {"dates":dates_to_str, "specializare": selected_specializare,"doctor":selected_doctor, "hour":selected_hour};
 
-  fetch("/doctors-info")
-  .then((response) => response.json())
-  .then((data) => {
-    var hourSelect = document.getElementById("hours");
-	hourSelect.textContent = '';
-
-	var concrete_option;
-
-    if (data.length > 0) {
-		for(let i = 7; i <= 18; i++) {
-			concrete_option = document.createElement("option");
-			concrete_option.textContent = i + ":00";
-			concrete_option.setAttribute("value", concrete_option.textContent);
-			hourSelect.appendChild(concrete_option);
-			concrete_option.textContent = i + ":30";
-			concrete_option.setAttribute("value", concrete_option.textContent);
-			hourSelect.appendChild(concrete_option);
-			
-		}
-      //data.forEach((doctor) => {});
-    } else {
-		concrete_option = document.createElement("option");
-		concrete_option.textContent = "No hours";
-		concrete_option.setAttribute("value", "none");
-		hourSelect.appendChild(concrete_option);
-    }
-  })
-  .catch((error) => console.log(error));
+	fetch("/appointments", {method:"POST", headers: new Headers({'content-type': 'application/json'}),body:JSON.stringify(request)})
+		.then((response) => {
+			console.log(JSON.stringify(request));
+			if(response.status != 200) {
+				throw new Error('promise chain cancelled');
+			}
+			response.json();
+		})
+		.then((data) => {
+			alert("success");
+		})
+		.catch((error) => {
+			console.log(error);
+			alert("failure");
+		});
+}

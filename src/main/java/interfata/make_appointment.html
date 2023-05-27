@@ -60,18 +60,22 @@
     </header>
     <div class="container">
         <h2>Make an Appointment</h2>
-        <form>
-            <div id="calendar"><script src="calendar.js"></script><script src="make_appointment_calendar.js"></script></div>
-            
+        <form id="appointment-form">
+            <div id="calendar"></div>
+
+            <label for="specializare">Preferred specialisation:</label>
+            <select id="specializare" name="specializare" onchange="update_event('specializare')"></select>
+
             <label for="doctor">Preferred Doctor:</label>
-            <select id="doctor" name="doctor"></select>
+            <select id="doctor" name="doctor" onchange="update_event('doctor')"></select>
 
-            <label for="hours">Available Hours:</label>
-            <select id="hours" name="hours" required></select>
+            <label for="hour">Available Hours:</label>
+            <select id="hour" name="hour" onchange="update_event('hour')"></select>
 
-            <input type="submit" value="Submit">
+            <input type="button" value="Submit" onclick="submit_form()">
         </form>
     </div>
+    <script src="calendar.js"></script><script src="make_appointment_calendar.js"></script>
 </div>
 </body>
 </html>

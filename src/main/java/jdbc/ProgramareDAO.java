@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProgramareDAO {
-    public void create(int id_pacient, int id_doctor, Date data_programare) throws SQLException {
+    public void create(int id_pacient, int id_doctor, Date data_programare, Time ora_programare) throws SQLException {
         try (Connection con = Database.getConnection();
-        PreparedStatement pstmt = con.prepareStatement(
-                "insert into programari (id_pacient, id_doctor, data_programare) values (?,?,?,?,?)")) {
+             PreparedStatement pstmt = con.prepareStatement(
+                     "insert into programari (id_pacient, id_doctor, data_programare, ora_programare) values (?,?,?,?)")) {
             pstmt.setInt(1,id_pacient);
             pstmt.setInt(2,id_doctor);
             pstmt.setDate(3,data_programare);
+            pstmt.setTime(4,ora_programare);
 
             pstmt.executeUpdate();
         }

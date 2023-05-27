@@ -33,7 +33,7 @@ body {
       border: 1px solid #ccc;
     }
 
-    input[type="submit"] {
+    input[type="button"] {
       background-color: #4CAF50;
       color: #fff;
       border: none;
