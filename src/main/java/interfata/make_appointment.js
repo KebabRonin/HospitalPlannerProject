@@ -1,7 +1,13 @@
 var selected_dates = [];
-var selected_doctor = -10;
-var selected_hour = -10;
-var selected_specializare = -10;
+var selected_doctor = -1;
+var selected_hour = -1;
+var selected_specializare = -1;
+
+
+var doctorSelect = document.getElementById("doctor");
+var specSelect = document.getElementById("specializare");
+var hourSelect = document.getElementById("hour");
+
 
 function make_option(root, value, text) {
 	var concrete_option = document.createElement("option");
@@ -12,7 +18,6 @@ function make_option(root, value, text) {
 }
 var update_funcs = {
 	"doctor": function () {
-	var doctorSelect = document.getElementById("doctor");
 	var prevoius_selection = doctorSelect.value;
 	doctorSelect.textContent = '';
 
@@ -56,7 +61,6 @@ var update_funcs = {
 		console.log('Ran ' + 'doctor')
 	},
 	"specializare": function () {
-	var specSelect = document.getElementById("specializare");
 	var prevoius_selection = specSelect.value;
 	specSelect.textContent = '';
 
@@ -96,7 +100,6 @@ var update_funcs = {
 		console.log('Ran ' + 'dates')
 	},
 	"hour": function () {
-	var hourSelect = document.getElementById("hour");
 	var prevoius_selection = hourSelect.value;
 	hourSelect.textContent = '';
 	
@@ -149,7 +152,65 @@ var update_funcs = {
 		hourSelect.selectedIndex = 0;
 		console.log('Ran ' + 'hour')
 	}
+}
 
+
+//Not used yet
+var update_matrix = {
+	//what to update
+	"doctor": {
+		//what just updated
+		"specializare": function() {
+			
+		},
+		"dates": function() {
+			var myBody = {doctor:getSelectedDoctor()};
+			if (myBody.doctor == -1) myBody = null;
+			console.log(myBody);
+			fetch("/program-info?month="+cal.getCurrentMonth(), {method:"GET", body:myBody}).then(response => response.json()).then(data => {
+				
+			}).catch(error => console.log(error));
+		},
+		"hour": function() {
+			
+		},
+	},
+	"specializare": {
+		//what just updated
+		"doctor": function() {
+			
+		},
+		"dates": function() {
+			
+		},
+		"hour": function() {
+			
+		}
+	},
+	"dates": {
+		//what just updated
+		"doctor": function() {
+			
+		},
+		"specializare": function() {
+			
+		},
+		"hour": function() {
+			
+		}
+	},
+	"hour": {
+		//what just updated
+		"doctor": function() {
+			
+		},
+		"specializare": function() {
+			
+		},
+		"dates": function() {
+			
+		}
+	}
 }
 
 function update_event(func) {
@@ -166,6 +227,7 @@ function update_event(func) {
 			console.log('Ran ' + i)
 		}
 	}
+	//update_funcs[func]();
 }
 
 
@@ -209,11 +271,18 @@ function submit_form() {
 		acc.push([current_date.getDate(),current_date.getMonth()+1,current_date.getFullYear()].join('-'));
 		return acc;
 	},[]);
+	// var request;
+	// if(dates_to_str.length > 0) request["dates"] = dates_to_str;
+	// if(selected_specializare != -1) request["specializare"] = selected_specializare;
+	// if(selected_doctor != -1) request["doctor"] = selected_doctor;
+	// if(selected_hour != -1) request["hour"] = selected_hour;
+	//body:JSON.stringify(request)
+	
 	var request = {"dates":dates_to_str, "specializare": selected_specializare,"doctor":selected_doctor, "hour":selected_hour};
 	
 	fetch('/appointments/'+myCookie, {method:"POST", headers: new Headers({'content-type': 'application/json'}),body:JSON.stringify(request)})
 		.then((response) => {
-			console.log(JSON.stringify(request));
+			console.log(JSON.stringify(response));
 			if(response.status != 200) {
 				throw new Error('promise chain cancelled');
 			}

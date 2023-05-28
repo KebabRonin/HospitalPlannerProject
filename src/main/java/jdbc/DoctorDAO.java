@@ -3,6 +3,7 @@ import javax.print.Doc;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DoctorDAO {
     public void create(String nume, String prenume, String nr_telefon, String email, String image, Integer id_cabinet) throws SQLException {
@@ -227,5 +228,9 @@ public class DoctorDAO {
             ResultSet rs = pstmt.executeQuery();
             return rs.next() ? rs.getString(1) : null;
         }
+    }
+
+    public List<Doctor> findBySpecialisation(int specializare) throws SQLException {
+        return this.findAll().stream().filter((d) -> d.getSpecializari().stream().anyMatch((spec) -> spec.getId() == specializare)).collect(Collectors.toList());
     }
 }

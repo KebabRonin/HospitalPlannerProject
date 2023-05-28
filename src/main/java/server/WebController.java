@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.*;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.ResultSet;
@@ -77,6 +78,13 @@ public class WebController {
     public List<Specializare> getSpecializariInfo() throws SQLException {
         var specializare = new SpecializareDAO();
         return specializare.getAllSpecializari();
+    }
+
+    @GetMapping(value = "/specializari-info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Specializare getSpecializareInfo(@PathVariable("id") int id) throws SQLException {
+        var specializare = new SpecializareDAO();
+        return specializare.findById(id);
     }
 
     @GetMapping(value = "/doctors-info", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -232,15 +240,19 @@ public class WebController {
         try {
             String fileName = cabinetPicture.getOriginalFilename();
             if(!Objects.equals(fileName, "")){
-                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
-                String filePath = folderPath + fileName;
-                cabinetPicture.transferTo(new File(filePath));
+                Path p = Paths.get("./"+filesPath+"/cabinet_pictures/"+fileName);
+                String filePath = p.toString();
+
+                cabinetPicture.transferTo(p);
 
                 CabinetDAO.create(cabinetName,floor,filePath);
             }
             else{
                 CabinetDAO.create(cabinetName,floor);
             }
+
+            //cabinetPicture.transferTo(new File(filePath));
+            cabinetPicture.transferTo(Paths.get("./"+filesPath+"/cabinet_pictures/"+fileName));
 
             return "Cabinet added successfully!";
         } catch (IOException e) {
@@ -261,9 +273,9 @@ public class WebController {
         try {
             String fileName = cabinetPicture.getOriginalFilename();
             if(!Objects.equals(fileName, "")){
-                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
-                String filePath = folderPath + fileName;
-                cabinetPicture.transferTo(new File(filePath));
+                Path p = Paths.get("./"+filesPath+"/cabinet_pictures/"+fileName);
+                String filePath = p.toString();
+                cabinetPicture.transferTo(p);
 
                 CabinetDAO.update(id,cabinetName,floor,filePath);
             }
@@ -294,9 +306,10 @@ public class WebController {
             System.out.println("SPECIALIZARE: " + specialization + " CABINET: " + cabinet);
             String fileName = image.getOriginalFilename();
             if(!Objects.equals(fileName, "")){
-                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
-                String filePath = folderPath + fileName;
-                image.transferTo(new File(filePath));
+                Path p = Paths.get("./"+filesPath+"/doctor_pictures/"+fileName);
+                String filePath = p.toString();
+
+                image.transferTo(p);
 
                 var doctor = new DoctorDAO();
                 doctor.create(firstName,lastName,phone,email,filePath,cabinet);
@@ -320,44 +333,6 @@ public class WebController {
         }
     }
 
-    @PostMapping("/update-doctor")
-    @ResponseBody
-    public String updateDoctor(@RequestParam("id") Integer id,
-                               @RequestParam("first-name") String firstName,
-                               @RequestParam("last-name") String lastName,
-                               @RequestParam("specialization") Integer specialization,
-                               @RequestParam("cabinet") Integer cabinet,
-                               @RequestParam("phone") String phone,
-                               @RequestParam("email") String email,
-                               @RequestParam("image") MultipartFile image) {
-        try {
-            System.out.println("SPECIALIZARE: " + specialization + "CABINET: " + cabinet);
-            String fileName = image.getOriginalFilename();
-            if(!Objects.equals(fileName, "")){
-                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
-                String filePath = folderPath + fileName;
-                image.transferTo(new File(filePath));
-
-                var doctor = new DoctorDAO();
-                doctor.update(id,firstName,lastName,phone,email,filePath,cabinet);
-            }
-            else{
-                var doctor = new DoctorDAO();
-                doctor.update(id,firstName,lastName,phone,email,cabinet);
-            }
-
-            var doctorSpecializare = new DoctoriSpecializariDAO();
-            doctorSpecializare.update(id, specialization);
-
-            return "Doctor edited successfully!";
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Failed upload the file.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Failed edit the doctor.";
-        }
-    }
 
     @DeleteMapping("/delete-doctor/{id}")
     @ResponseBody
@@ -392,29 +367,107 @@ public class WebController {
 
     @GetMapping(value="/program-info", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String getProgram(@RequestParam(value = "dates", required = false)String datesLStr, @RequestParam(value = "doctors", required = false) String docsLStr) throws SQLException, java.text.ParseException {
-        List<Date> dates = new LinkedList<>();
-        SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
-        String[] sub = datesLStr.split(",");
-        for (String str : sub) {
-            dates.add(new java.sql.Date(d.parse(str).getTime()));
+    public List<Integer> getProgram(@RequestBody RequestProgramare request, @RequestParam("month") int month/*@RequestParam(value = "dates", required = false)String datesLStr, @RequestParam(value = "doctors", required = false) String docsLStr*/) throws Exception {
+        System.out.println(request);
+        List<Doctor> doctorList = null;
+        DoctorDAO doctorDAO = new DoctorDAO();
+        if (request.getDoctor() > 0) {
+            Doctor d = doctorDAO.findById(request.getDoctor());
+            if (d != null) {
+                doctorList = new LinkedList<>();
+                doctorList.add(d);
+            }
+            else {
+                throw new Exception("Doctor does not exist");
+            }
+        }
+        else if (request.getSpecializare() > 0) {
+            doctorList = doctorDAO.findBySpecialisation(request.getSpecializare());
         }
 
-        int[] doctor_ids;
-        sub = docsLStr.split(",");
-        doctor_ids = Arrays.stream(sub).mapToInt(Integer::parseInt).toArray();
+        if(doctorList == null) {//any doctor
+            try(Connection con = Database.getConnection();
+                PreparedStatement pstmt = con.prepareStatement("select distinct to_char(zi,'DD')::integer from program_doctori where to_char(zi,'MM')::integer = (?)")) {
+                pstmt.setInt(1, month);
+                ResultSet rs = pstmt.executeQuery();
+                List<Integer> available_days = new ArrayList<>(32);
+                while(rs.next()) {
+                    available_days.add(rs.getInt(1));
+                }
 
-        System.out.println(dates.size());
-        dates.stream().forEach((date) -> System.out.println(date));
+                return available_days;
+            }
+        }
+        else if(doctorList.size() > 0) {
+            try(Connection con = Database.getConnection()) {
+                StringBuilder sb = new StringBuilder("select distinct to_char(zi,'DD')::integer from program_doctori where to_char(zi,'MM')::integer = (?) and id_doctor in (");
+                sb.append("?,".repeat(doctorList.size()));
+                sb.deleteCharAt(sb.length()-1);
+                sb.append(")");
+                try (PreparedStatement pstmt = con.prepareStatement(sb.toString())) {
+                    pstmt.setInt(1, month);
+                    for (int index = 0; index < doctorList.size(); ++index) {
+                        pstmt.setInt(1 + index, doctorList.get(index).getId());
+                    }
+                    ResultSet rs = pstmt.executeQuery();
+                    List<Integer> available_days = new ArrayList<>(32);
+                    while(rs.next()) {
+                        available_days.add(rs.getInt(1));
+                    }
 
-        System.out.println(doctor_ids.length);
-        Arrays.stream(doctor_ids).forEach((id) -> System.out.println(id));
-        return "";
+                    return available_days;
+                }
+
+            }
+        }
+        return new ArrayList<>();
     }
 
-    @GetMapping(value = "/your_appointments", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/update-doctor")
     @ResponseBody
-    public List<Programare> getUserAppointments(@CookieValue("userId") int userId) {
+    public String updateDoctor(@RequestParam("id") Integer id,
+                            @RequestParam("first-name") String firstName,
+                            @RequestParam("last-name") String lastName,
+                            @RequestParam("specialization") Integer specialization,
+                            @RequestParam("cabinet") Integer cabinet,
+                            @RequestParam("phone") String phone,
+                            @RequestParam("email") String email,
+                            @RequestParam("image") MultipartFile image) {
+        try {
+            String fileName = image.getOriginalFilename();
+            if(!Objects.equals(fileName, "")){
+                Path p = Paths.get("./"+filesPath+"/doctor_pictures/"+fileName);
+                String filePath = p.toString();
+
+                image.transferTo(p);
+
+                var doctor = new DoctorDAO();
+                doctor.update(id,firstName,lastName,phone,email,filePath,cabinet);
+            }
+            else{
+                var doctor = new DoctorDAO();
+                doctor.update(id,firstName,lastName,phone,email,cabinet);
+            }
+
+            var doctorSpecializare = new DoctoriSpecializariDAO();
+            doctorSpecializare.update(id, specialization);
+
+            return "Doctor edited successfully!";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Failed upload the file.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed edit the doctor.";
+        }
+    }
+
+
+    //@GetMapping(value = "/your_appointments", produces = MediaType.APPLICATION_JSON_VALUE)
+
+    @GetMapping(value = "/appointments/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Programare> getUserAppointments(@PathVariable("userId") int userId) {
         try {
             return new ProgramareDAO().findAllOfPatientId(userId);
         } catch (SQLException e) {
@@ -423,9 +476,9 @@ public class WebController {
         }
     }
 
-    @PostMapping(value = "/appointments", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/appointments/{userId}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public void makeAppointment(@CookieValue("userId") int userId, @RequestBody RequestProgramare request) throws ParseException, SQLException {
+    public void makeAppointment(@PathVariable("userId") int userId, @RequestBody RequestProgramare request) throws ParseException, SQLException {
         System.out.println(request);
         ProgramareDAO prog = new ProgramareDAO();
 
