@@ -1,18 +1,39 @@
 function getDoctorInfo(id_doctor) {
-    return fetch(`/doctors-info/${id_doctor}`)
-      .then((response) => response.json())
-      .then((doctor) => {
-        const { nume, prenume, id_cabinet } = doctor;
-  
-        return fetch(`/cabinet-info/${id_cabinet}`)
-          .then((response) => response.json())
-          .then((cabinet) => {
-            const { denumire } = cabinet;
-  
-            return { nume, prenume, denumire };
-          });
-      })
-      .catch((error) => console.log(error));
+  return fetch(`/doctors-info/${id_doctor}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not OK');
+      }
+      return response.json();
+    })
+    .then((doctor) => {
+      if (!doctor || Object.keys(doctor).length === 0) {
+        throw new Error('Doctor not found');
+      }
+      const { nume, prenume, id_cabinet } = doctor;
+
+      return fetch(`/cabinet-info/${id_cabinet}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not OK');
+          }
+          return response.json();
+        })
+        .then((cabinet) => {
+          if (!cabinet || Object.keys(cabinet).length === 0) {
+            throw new Error('Cabinet not found');
+          }
+          const { denumire } = cabinet;
+
+          return { nume, prenume, denumire };
+        })
+        .catch(() => {
+          return { nume, prenume, denumire: undefined };
+        });
+    })
+    .catch(() => {
+      return { nume: undefined, prenume: undefined, denumire: undefined };
+    });
 }
   
 function getPacientInfo(id_pacient) {
@@ -83,9 +104,13 @@ function fetchAppointments() {
               .then((doctor) => {
                 const doctorNameCell = row.querySelector(`#doctor-name-${appointment.id_doctor}`);
                 const cabinetNameCell = row.querySelector(`#cabinet-name-${appointment.id_doctor}`);
-            
-                doctorNameCell.textContent = `${doctor.nume} ${doctor.prenume}`;
-                cabinetNameCell.textContent = doctor.denumire;
+                if (typeof doctor.nume === "undefined") {
+                  doctorNameCell.textContent = "Unassigned";
+                  cabinetNameCell.textContent = "Unassigned";
+                } else {
+                  doctorNameCell.textContent = `${doctor.nume} ${doctor.prenume}`;
+                  cabinetNameCell.textContent = doctor.denumire;
+                }
               })
               .catch((error) => console.log(error));
   

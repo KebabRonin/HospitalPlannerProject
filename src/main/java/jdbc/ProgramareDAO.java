@@ -33,7 +33,7 @@ public class ProgramareDAO {
         }
     }
 
-    public List<Programare> findAllOfDoctorId(int id_doctor) throws SQLException {
+    public static List<Programare> findAllOfDoctorId(int id_doctor) throws SQLException {
         List<Programare> rez = new ArrayList<>();
         try (Connection con = Database.getConnection();
              Statement stmt = con.createStatement();

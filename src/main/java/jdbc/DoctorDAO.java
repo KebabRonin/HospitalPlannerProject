@@ -20,6 +20,20 @@ public class DoctorDAO {
         }
     }
 
+    public void create(String nume, String prenume, String nr_telefon, String email, Integer id_cabinet) throws SQLException {
+        try (Connection con = Database.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(
+                     "insert into doctori (nume,prenume,nr_telefon,email,id_cabinet) values (?,?,?,?,?)")) {
+            pstmt.setString(1, nume);
+            pstmt.setString(2, prenume);
+            pstmt.setString(3, nr_telefon);
+            pstmt.setString(4, email);
+            pstmt.setInt(5,id_cabinet);
+
+            pstmt.executeUpdate();
+        }
+    }
+
     public void delete(int doctorId) throws SQLException {
         Connection con = Database.getConnection();
         try (PreparedStatement pstmt = con.prepareStatement(
@@ -44,6 +58,7 @@ public class DoctorDAO {
             pstmt.executeUpdate();
         }
     }
+
     public void update(Integer id, String nume, String prenume, String nr_telefon, String email, Integer id_cabinet) throws SQLException {
         Connection con = Database.getConnection();
         try (PreparedStatement pstmt = con.prepareStatement(
@@ -107,7 +122,7 @@ public class DoctorDAO {
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "select id, nume, prenume, email, nr_telefon, image, id_cabinet from doctori")) {
+                     "select id, nume, prenume, email, nr_telefon, image, id_cabinet from doctori order by id")) {
             while(rs.next()) {
                 int id = rs.getInt("id");
                 String nume = rs.getString("nume");
@@ -126,7 +141,7 @@ public class DoctorDAO {
         return rez;
     }
 
-    public Doctor findById(int id) throws SQLException {
+    public static Doctor findById(int id) throws SQLException {
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(
@@ -146,6 +161,27 @@ public class DoctorDAO {
                 return new Doctor(id,nume, prenume, nr_telefon, email,image,specializari,id_cabinet);
             } else {
                 return null;
+            }
+        }
+    }
+
+    public static int findId(String nume, String prenume, String nr_telefon, String email, int id_cabinet) throws SQLException {
+        try (Connection con = Database.getConnection();
+             PreparedStatement stmt = con.prepareStatement("select id from doctori where nume=? and prenume=? and nr_telefon=? and email=? and id_cabinet=?"))
+        {
+            stmt.setString(1,nume);
+            stmt.setString(2,prenume);
+            stmt.setString(3,nr_telefon);
+            stmt.setString(4,email);
+            stmt.setInt(5,id_cabinet);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int id = rs.getInt("id");
+
+                return id;
+            } else {
+                return 0;
             }
         }
     }
@@ -173,7 +209,7 @@ public class DoctorDAO {
         }
     }
 
-    public int findByEmail(String email) throws SQLException {
+    public static int findByEmail(String email) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement("select id from doctori where email=(?)");
         ) {

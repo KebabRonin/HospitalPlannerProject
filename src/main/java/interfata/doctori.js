@@ -1,3 +1,184 @@
+fetchDoctorsInfo();
+
+function fetchDoctorsInfo(){
+  fetch("/doctors-info")
+  .then((response) => response.json())
+  .then((data) => {
+    const doctorListDiv = document.getElementById("doctor-list");
+    doctorListDiv.innerHTML=``;
+
+    const doctorsTable = document.createElement("table");
+    doctorsTable.id = "doctors-table";
+
+    const tableHeader = document.createElement("thead");
+    tableHeader.innerHTML = `
+      <tr>
+        <th>Picture</th>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Specializations</th>
+        <th>Cabinet</th>
+        <th>Options</th>
+      </tr>
+    `;
+    doctorsTable.appendChild(tableHeader);
+
+    const tableBody = document.createElement("tbody");
+
+    if (data.length > 0) {
+      data.forEach((doctor) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><img src="${getDoctorImage(doctor.image)}" alt="Doctor Image"></td>
+          <td>${doctor.id}</td>
+          <td>${doctor.nume} ${doctor.prenume}</td>
+          <td>${doctor.email}</td>
+          <td>${doctor.nr_telefon}</td>
+          <td>${getSpecializariText(doctor.specializari)}</td>
+          <td id="cabinet-name-${doctor.id_cabinet}"></td>
+          <td>
+            <button class="add-shift" data-doctor-id="${doctor.id}">Add Shift</button>
+            <button class="view-shifts" data-doctor-id="${doctor.id}">Shifts</button>
+            <button class="view-appointments" data-doctor-id="${doctor.id}">Appointments</button>
+            <button class="edit-option" data-doctor-id="${doctor.id}">Edit</button>
+          </td>
+        `;
+
+        getCabinetInfo(doctor.id_cabinet)
+        .then((cabinet) => {
+          const cabinetNameCell = row.querySelector(`#cabinet-name-${doctor.id_cabinet}`);
+          cabinetNameCell.textContent = cabinet.denumire;
+        })
+        .catch((error) => console.log(error));
+
+        row.querySelector(".add-shift").addEventListener("click", (event) => {
+          const doctorId = event.target.getAttribute("data-doctor-id");
+          showShiftForm(doctorId);
+        });
+
+        row.querySelector(".view-shifts").addEventListener("click", (event) => {
+          const doctorId = event.target.getAttribute("data-doctor-id");
+          showShiftsOfDoctor(doctorId);
+        });
+
+        row.querySelector(".view-appointments").addEventListener("click", (event) => {
+          const doctorId = event.target.getAttribute("data-doctor-id");
+          showAppointmentsOfDoctor(doctorId);
+        });
+
+        row.querySelector(".edit-option").addEventListener("click", (event) => {
+          const doctorId = event.target.getAttribute("data-doctor-id");
+          editDoctor(doctorId);
+        });
+
+        tableBody.appendChild(row);
+      });
+    } else {
+      const emptyRow = document.createElement("tr");
+      emptyRow.innerHTML = `<td colspan="10">No doctors found.</td>`;
+      tableBody.appendChild(emptyRow);
+    }
+
+    doctorsTable.appendChild(tableBody);
+    doctorListDiv.appendChild(doctorsTable);
+  })
+  .catch((error) => console.log(error));
+}
+
+function showShiftsOfDoctor(id_doctor){
+  var doctorsTitle = document.getElementById("doctors-title");
+  var doctorList = document.getElementById("doctor-list");
+  var button = document.getElementById("add-doctor-button");
+
+  doctorsTitle.style.display = "none";
+  doctorList.style.display = "none";
+  button.style.display = "none";
+
+  const shiftsList = document.getElementById("shifts-list");
+  shiftsList.innerHTML = "";
+  shiftsList.style.display = "block";
+
+  getDoctorInfo(id_doctor)
+    .then((doctor) => {
+      const shiftsTitle = document.createElement("h1");
+      shiftsTitle.textContent = `Shifts of Dr. ${doctor.nume} ${doctor.prenume}`;
+      shiftsList.appendChild(shiftsTitle);
+
+      fetch(`/doctor-shifts/${id_doctor}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const shiftsTable = document.createElement("table");
+          shiftsTable.id = "shifts-table";
+
+          const tableHeader = document.createElement("thead");
+          tableHeader.innerHTML = `
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Start Hour</th>
+              <th>End Hour</th>
+              <th>Cabinet</th>
+              <th>Options</th>
+            </tr>
+          `;
+          shiftsTable.appendChild(tableHeader);
+
+          const tableBody = document.createElement("tbody");
+          if (data.length > 0) {
+            data.forEach((shift) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${shift.id}</td>
+                <td>${shift.zi}</td>
+                <td>${shift.startHour}</td>
+                <td>${shift.endHour}</td>
+                <td id="cabinet-name-${shift.id_doctor}"></td>
+                <td>
+                  <button class="edit-option" data-shift-id="${shift.id}">Edit</button>
+                </td>
+              `;
+              getCabinetInfo(shift.id_doctor)
+                .then((cabinet) => {
+                  const cabinetNameCell = row.querySelector(`#cabinet-name-${shift.id_doctor}`);
+                  cabinetNameCell.textContent = cabinet.denumire;
+                })
+                .catch((error) => console.log(error));
+
+              row.querySelector(".edit-option").addEventListener("click", (event) => {
+                const shiftId = event.target.getAttribute("data-shift-id");
+                editShift(shiftId);
+              });
+
+              tableBody.appendChild(row);
+            });
+          } else {
+            const emptyRow = document.createElement("tr");
+            emptyRow.innerHTML = `<td colspan="10">No shifts found.</td>`;
+            tableBody.appendChild(emptyRow);
+          }
+
+          shiftsTable.appendChild(tableBody);
+          shiftsList.appendChild(shiftsTable);
+
+          const backButtonDiv = document.createElement("div");
+          backButtonDiv.id = "back-button-shifts";
+          const backButton = document.createElement("button");
+          backButton.textContent = "Back";
+          backButton.addEventListener("click", function() {
+            shiftsList.style.display = "none";
+            goBack();
+          });
+          backButtonDiv.appendChild(backButton);
+
+          shiftsList.appendChild(backButtonDiv);
+        })
+        .catch((error) => console.log(error));
+    })
+    .catch((error) => console.log(error));
+}
+
 function getLastTwoPartsOfPath(filePath) {
   try {
     const parts = filePath.split("\\");
@@ -16,31 +197,15 @@ function extractFileName(filePath) {
 function showDoctorForm() {
   var doctorsTitle = document.getElementById("doctors-title");
   var doctorList = document.getElementById("doctor-list");
-  var textAndButton = document.getElementById("text-and-button");
   var button = document.getElementById("add-doctor-button");
   var form = document.getElementById("doctor-form");
 
   doctorsTitle.style.display = "none";
   doctorList.style.display = "none";
   button.style.display = "none";
-  textAndButton.style.display = "none";
   form.style.display = "block";
 
   fetchCabineteSpecializari();
-}
-
-function showShiftForm(id_doctor) {
-  var doctorsTitle = document.getElementById("doctors-title");
-  var doctorList = document.getElementById("doctor-list");
-  var textAndButton = document.getElementById("text-and-button");
-  var button = document.getElementById("add-doctor-button");
-  var form = document.getElementById("shift-form");
-
-  doctorsTitle.style.display = "none";
-  doctorList.style.display = "none";
-  button.style.display = "none";
-  textAndButton.style.display = "none";
-  form.style.display = "block";
 }
 
 function editAppointment(appointmentId){
@@ -66,7 +231,10 @@ function getPacientInfo(id_pacient) {
       const { nume, prenume } = pacient;
       return { nume, prenume };
     })
-    .catch((error) => console.log(error));
+    .catch((error) => {
+      console.log(error);
+      throw error;
+    });
 }
 
 function showAppointmentsOfDoctor(id_doctor) {
@@ -108,26 +276,25 @@ function showAppointmentsOfDoctor(id_doctor) {
 
           const tableBody = document.createElement("tbody");
           if (data.length > 0) {
-            console.log(data);
             data.forEach((appointment) => {
               const row = document.createElement("tr");
               row.innerHTML = `
                 <td>${appointment.id}</td>
-                <td id="pacient-name-${appointment.id_pacient}"></td>
+                <td id="pacient-name-${appointment.id_doctor}"></td>
                 <td>${appointment.data_programare}</td>
                 <td>${appointment.ora_programare}</td>
                 <td>
-                  <button class="edit-appointment" data-appointment-id="${appointment.id}">Edit</button>
+                  <button class="edit-option" data-appointment-id="${appointment.id}">Edit</button>
                 </td>
               `;
-              getPacientInfo(appointment.id_pacient)
+              getPacientInfo(appointment.id_doctor)
                 .then((pacient) => {
-                  const pacientNameCell = row.querySelector(`#pacient-name-${appointment.id_pacient}`);
+                  const pacientNameCell = row.querySelector(`#pacient-name-${appointment.id_doctor}`);
                   pacientNameCell.textContent = `${pacient.nume} ${pacient.prenume}`;
                 })
                 .catch((error) => console.log(error));
 
-              row.querySelector(".edit-appointment").addEventListener("click", (event) => {
+              row.querySelector(".edit-option").addEventListener("click", (event) => {
                 const appointmentId = event.target.getAttribute("data-appointment-id");
                 editAppointment(appointmentId);
               });
@@ -164,14 +331,12 @@ function showAppointmentsOfDoctor(id_doctor) {
 function editDoctor(id_doctor){
   var doctorsTitle = document.getElementById("doctors-title");
   var doctorList = document.getElementById("doctor-list");
-  var textAndButton = document.getElementById("text-and-button");
   var button = document.getElementById("add-doctor-button");
   var form = document.getElementById("doctor-form");
 
   doctorsTitle.style.display = "none";
   doctorList.style.display = "none";
   button.style.display = "none";
-  textAndButton.style.display = "none";
   form.style.display = "block";
 
   fetchCabineteSpecializari();
@@ -190,8 +355,12 @@ function editDoctorForm(doctor) {
   document.getElementById("doctor-phone").value = doctor.nr_telefon;
   document.getElementById("doctor-email").value = doctor.email;
 
-  document.getElementById("doctor-cabinet").value = doctor.id_cabinet;
-  document.getElementById("doctor-specialization").value = doctor.specializari[0].id;
+  if(doctor.id_cabinet != null){
+    document.getElementById("doctor-cabinet").value = doctor.id_cabinet;
+  }
+  if(doctor.specializari!= null){
+    document.getElementById("doctor-specialization").value = doctor.specializari[0].id;
+  }
 
   const pictureInput = document.getElementById("doctor-picture");
   const fileLabel = document.querySelector(".file-input-label");
@@ -213,10 +382,10 @@ function editDoctorForm(doctor) {
   const addButton = document.getElementById("add-button");
   addButton.id = "save-btn";
   addButton.textContent = "Save";
-  addButton.removeAttribute("onclick");
-  addButton.addEventListener("click", function() {
+  addButton.setAttribute("onclick","saveDoctor()");
+  addButton.onclick = function(){
     saveDoctor(doctor.id);
-  });
+  }
   
   const backButton = document.querySelector(".back-btn");
   backButton.setAttribute("onclick", "goBackFromEdit()");
@@ -280,17 +449,21 @@ function resetForm() {
     handleFileInputChange(this);
   });
 
-  const addButton = document.getElementById("save-btn");
-  addButton.id = "add-button";
-  addButton.textContent = "Add";
-  addButton.removeEventListener("click", saveDoctor);
-
+  if(document.getElementById("save-btn") != null){
+    const addButton = document.getElementById("save-btn");
+    addButton.id = "add-button";
+    addButton.textContent = "Add";
+    addButton.setAttribute("onclick","addDoctor()");
+  }
+  
   const backButton = document.querySelector(".back-btn");
   backButton.setAttribute("onclick", "goBack()");
 
   const specificFormGroup = document.getElementById("specific-form-group");
-  const deleteButton = specificFormGroup.querySelector(".delete-btn");
-  specificFormGroup.removeChild(deleteButton);
+  if(specificFormGroup.querySelector(".delete-btn") != null){
+    const deleteButton = specificFormGroup.querySelector(".delete-btn");
+    specificFormGroup.removeChild(deleteButton);
+  }
 }
 
 function goBackFromEdit(){
@@ -324,6 +497,7 @@ function saveDoctor(id_doctor) {
       button.style.display = "flex";
 
       fetchDoctorsInfo();
+      resetForm();
       doctorListDiv.style.display = "flex";
       doctorsTitle.style.display = "block";
     })
@@ -354,7 +528,6 @@ function goBackFromShift() {
 }
 
 function addDoctor() {
-  var textAndButton = document.getElementById("text-and-button");
   var form = document.getElementById("doctor-form");
   var button = document.getElementById("add-doctor-button");
   const doctorListDiv = document.getElementById("doctor-list");
@@ -474,88 +647,240 @@ function getCabinetInfo(id_cabinet) {
       .catch((error) => console.log(error));
 }
 
-function fetchDoctorsInfo(){
-  fetch("/doctors-info")
-  .then((response) => response.json())
-  .then((data) => {
-    const doctorListDiv = document.getElementById("doctor-list");
-    doctorListDiv.innerHTML=``;
+/*SHIFT*/
+var selected_dates = [];
 
-    const doctorsTable = document.createElement("table");
-    doctorsTable.id = "doctors-table";
+function showShiftForm(id_doctor) {
+  var doctorsTitle = document.getElementById("doctors-title");
+  var doctorList = document.getElementById("doctor-list");
+  var button = document.getElementById("add-doctor-button");
+  var form = document.getElementById("shift-form");
 
-    const tableHeader = document.createElement("thead");
-    tableHeader.innerHTML = `
-      <tr>
-        <th>Picture</th>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Specializations</th>
-        <th>Cabinet</th>
-        <th>Options</th>
-      </tr>
-    `;
-    doctorsTable.appendChild(tableHeader);
+  doctorsTitle.style.display = "none";
+  doctorList.style.display = "none";
+  button.style.display = "none";
+  form.style.display = "block";
 
-    const tableBody = document.createElement("tbody");
-
-    if (data.length > 0) {
-      data.forEach((doctor) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><img src="${getDoctorImage(doctor.image)}" alt="Doctor Image"></td>
-          <td>${doctor.id}</td>
-          <td>${doctor.nume} ${doctor.prenume}</td>
-          <td>${doctor.email}</td>
-          <td>${doctor.nr_telefon}</td>
-          <td>${getSpecializariText(doctor.specializari)}</td>
-          <td id="cabinet-name-${doctor.id_cabinet}"></td>
-          <td>
-            <button class="add-shift" data-doctor-id="${doctor.id}">Add Shift</button>
-            <button class="view-appointments" data-doctor-id="${doctor.id}">Appointments</button>
-            <button class="edit-doctor" data-doctor-id="${doctor.id}">Edit</button>
-          </td>
-        `;
-
-        getCabinetInfo(doctor.id_cabinet)
-        .then((cabinet) => {
-          const cabinetNameCell = row.querySelector(`#cabinet-name-${doctor.id_cabinet}`);
-          cabinetNameCell.textContent = cabinet.denumire;
-        })
-        .catch((error) => console.log(error));
-
-        row.querySelector(".add-shift").addEventListener("click", (event) => {
-          const doctorId = event.target.getAttribute("data-doctor-id");
-          showShiftForm(doctorId);
-        });
-
-        row.querySelector(".view-appointments").addEventListener("click", (event) => {
-          const doctorId = event.target.getAttribute("data-doctor-id");
-          showAppointmentsOfDoctor(doctorId);
-        });
-
-        row.querySelector(".edit-doctor").addEventListener("click", (event) => {
-          const doctorId = event.target.getAttribute("data-doctor-id");
-          editDoctor(doctorId);
-        });
-
-        tableBody.appendChild(row);
-      });
-    } else {
-      const emptyRow = document.createElement("tr");
-      emptyRow.innerHTML = `<td colspan="10">No doctors found.</td>`;
-      tableBody.appendChild(emptyRow);
-    }
-
-    doctorsTable.appendChild(tableBody);
-    doctorListDiv.appendChild(doctorsTable);
-  })
-  .catch((error) => console.log(error));
+  const addButton = document.getElementById("add-shift-btn");
+  addButton.addEventListener("click", function() {
+    addShift(id_doctor);
+  });
 }
 
-fetchDoctorsInfo();
+function addShift(id_doctor){
+  const formular = document.getElementById("shift-form");
+  const form = document.getElementById("add-shift-form");
+  var button = document.getElementById("add-doctor-button");
+  const doctorListDiv = document.getElementById("doctor-list");
+  const doctorsTitle = document.getElementById("doctors-title");
+  var formData = new FormData(form);
 
+  console.log(selected_dates);
+  var dates_to_str = selected_dates.reduce((acc, current_date) => {
+		acc.push([current_date.getDate(),current_date.getMonth()+1,current_date.getFullYear()].join('-'));
+		return acc;
+	},[]);
+  console.log(dates_to_str);
 
+  formData.append("dates",dates_to_str);
+  formData.append("id_doctor",id_doctor);
+  
+  fetch("/add-shift", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.text())
+    .then((result) => {
+      console.log(result);
+      
+      fetchDoctorsInfo();
+      formular.style.display = "none";
+      button.style.display = "flex";
+      doctorListDiv.style.display = "flex";
+      doctorsTitle.style.display = "block";
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
 
+function editShift(id_shift){
+  const shiftsTable = document.getElementById("shifts-list");
+  shiftsTable.style.display="none";
+  var form = document.getElementById("shift-form");
+  form.style.display = "block";
+
+  fetch(`/shift-info/${id_shift}`)
+    .then((response) => response.json())
+    .then((shift) => {
+      editShiftForm(shift);
+    })
+    .catch((error) => console.log(error));
+
+}
+
+function editShiftForm(shift){
+  const shiftFormTitle = document.getElementById("shift-form-title");
+  shiftFormTitle.textContent = "Edit Shift";
+
+  var [hour, minute] = shift.startHour.split(':').slice(0, 2);
+  var formattedHour = parseInt(hour, 10).toString();
+  var timp_inceput = `${formattedHour}:${minute}`;
+  document.getElementById("shift-start-hour").value = timp_inceput;
+
+  [hour, minute] = shift.endHour.split(':').slice(0, 2);
+  formattedHour = parseInt(hour, 10).toString();
+  const timp_final = `${formattedHour}:${minute}`;
+  document.getElementById("shift-end-hour").value = timp_final;
+
+  var parts = shift.zi.split('-');
+  var day = parseInt(parts[2], 10);
+  var month = (parseInt(parts[1], 10) - 1);
+  var year = parseInt(parts[0]);
+  var data = new Date(year, month, day);
+  cal.selectDate(data);
+  selected_dates.push(data);
+
+  const addButton = document.getElementById("add-shift-btn");
+  addButton.id = "save-shift-btn";
+  addButton.textContent = "Save";
+  addButton.removeAttribute("onclick");
+  addButton.addEventListener("click", function() {
+    saveShift(shift);
+  });
+  
+  const backButton = document.getElementById("back-button");
+  backButton.removeAttribute("onclick");
+  backButton.addEventListener("click", function() {
+    goBackFromShiftEdit();
+  });
+
+  const specificFormGroup = document.getElementById("specific-shift-form-group");
+  const deleteButton = document.createElement("button");
+  deleteButton.classList.add("delete-btn");
+  deleteButton.textContent = "Delete";
+  deleteButton.setAttribute("onclick", "deleteShift()");
+  deleteButton.setAttribute("type", "button");
+  deleteButton.onclick = function() {
+    deleteShift(shift);
+  };
+  specificFormGroup.appendChild(deleteButton);
+}
+
+function resetShiftForm() {
+  const shiftFormTitle = document.getElementById("shift-form-title");
+  shiftFormTitle.textContent = "Add a Shift";
+  document.getElementById("shift-start-hour").value = "-1";
+  document.getElementById("shift-end-hour").value = "-1";
+  console.log(selected_dates[0]);
+  cal.unselectDate(selected_dates[0]);
+  selected_dates = [];
+  console.log(selected_dates);
+
+  if(document.getElementById("save-shift-btn") != null){
+    const addButton = document.getElementById("save-shift-btn");
+    addButton.id = "add-shift-btn";
+    addButton.textContent = "Add";
+    addButton.removeEventListener("click", saveShift);
+  }
+  
+  const backButton = document.querySelector(".back-btn");
+  backButton.setAttribute("onclick", "goBack()");
+
+  const specificFormGroup = document.getElementById("specific-shift-form-group");
+  if(specificFormGroup.querySelector(".delete-btn") != null){
+    const deleteButton = specificFormGroup.querySelector(".delete-btn");
+    specificFormGroup.removeChild(deleteButton);
+  }
+}
+
+function saveShift(shift){
+  const shiftsTable = document.getElementById("shifts-list");
+  const formular = document.getElementById("shift-form");
+  const form = document.getElementById("add-shift-form");
+  var formData = new FormData(form);
+
+  var dates_to_str = selected_dates.reduce((acc, current_date) => {
+		acc.push([current_date.getDate(),current_date.getMonth()+1,current_date.getFullYear()].join('-'));
+		return acc;
+	},[]);
+
+  formData.append("dates",dates_to_str);
+  formData.append("id_doctor",shift.id_doctor);
+
+  fetch(`/update-shift/${shift.id}`, {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.text())
+    .then((result) => {
+      console.log(result);
+
+      showShiftsOfDoctor(shift.id_doctor);
+      resetShiftForm();
+      formular.style.display = "none";
+      shiftsTable.style.display = "block";
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
+function goBackFromShiftEdit(){
+  const form = document.getElementById("shift-form");
+  const shiftsList = document.getElementById("shifts-list");
+  shiftsList.style.display="block";
+  form.style.display="none";
+  resetShiftForm();
+}
+
+function deleteShift(shift){
+  const shiftsTable = document.getElementById("shifts-list");
+  const formular = document.getElementById("shift-form");
+  fetch(`/delete-shift/${shift.id}`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (response.ok) {
+        console.log('Shift deleted successfully');
+        showShiftsOfDoctor(shift.id_doctor);
+        resetShiftForm();
+        formular.style.display = "none";
+        shiftsTable.style.display = "block";
+      } else {
+        console.error('Error deleting shift');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting shift', error);
+    });
+}
+
+var cal = new calendar(document.getElementById('calendar'), {
+  selectDate: function (date) {
+    if (!!selected_dates.find(d => d.getTime() === date.getTime())) {
+      cal.unselectDate(date);
+      selected_dates = selected_dates.filter(d => d.getTime() !== date.getTime());
+    } else {
+      cal.selectDate(date);
+      selected_dates.push(date);
+    }
+    console.log(selected_dates);
+  },
+	onDayClick: function (date, evts) {
+		if (!!selected_dates.find(d => d.getTime() === date.getTime())) {
+			cal.unselectDate(date);
+			selected_dates = selected_dates.filter(d => d.getTime() !== date.getTime());
+		} else {
+      console.log(date);
+			cal.selectDate(date);
+			selected_dates.push(date);
+		}
+		console.log(selected_dates);
+	},
+	onMonthChanged: function () {
+		for (let i = 0; i < selected_dates.length; i++) {
+			cal.selectDate(selected_dates[i]);
+		}
+	}
+});

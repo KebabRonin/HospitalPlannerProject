@@ -139,7 +139,6 @@ h1 {
 
 #cabinet-list-table th,
 #cabinet-list-table td {
-  padding: 5px;
   text-align: center;
   border-bottom: 1px solid #ccc;
 }
@@ -149,17 +148,20 @@ h1 {
 }
 
 #cabinet-list-table th {
+  padding: 5px;
   background-color: #f2f2f2;
 }
 
 #cabinet-list-table img {
   max-width: 80px;
+  width: 80px;
+  height: 80px;
   max-height: 80px;
 }
 
 .edit-cabinet {
   padding: 6px 12px;
-  background-color: #4caf50;
+  background-color: #1f60c7;
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -167,7 +169,7 @@ h1 {
 }
 
 .edit-cabinet:hover {
-  background-color: #45a049;
+  background-color: #38409d;
 }
 
 .delete-btn {
@@ -176,6 +178,17 @@ h1 {
   color: white;
   font-size: 16px;
   padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.back-btn {
+  margin-top: 10px;
+  background-color: rgb(217, 0, 255);
+  color: white;
+  font-size: 16px;
+  padding: 10px 15px;
   border: none;
   cursor: pointer;
   border-radius: 5px;

@@ -4,7 +4,13 @@ import com.sun.net.httpserver.*;
 
 import java.io.*;
 import java.nio.file.*;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+
+import jdbc.Database;
+import jdbc.Programare;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

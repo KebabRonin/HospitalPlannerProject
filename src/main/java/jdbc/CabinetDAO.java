@@ -5,13 +5,48 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CabinetDAO {
-    public void create(String denumire, String image, Integer etaj) throws SQLException {
+    public static void create(String denumire, Integer etaj, String image) throws SQLException {
         try (Connection con = Database.getConnection();
         PreparedStatement pstmt = con.prepareStatement(
                 "insert into cabinete (denumire, etaj, image) values (?,?,?)")) {
             pstmt.setString(1, denumire);
             pstmt.setInt(2, etaj);
             pstmt.setString(3, image);
+            pstmt.executeUpdate();
+        }
+    }
+
+    public static void create(String denumire, Integer etaj) throws SQLException {
+        try (Connection con = Database.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(
+                     "insert into cabinete (denumire, etaj) values (?,?)")) {
+            pstmt.setString(1, denumire);
+            pstmt.setInt(2, etaj);
+            pstmt.executeUpdate();
+        }
+    }
+
+    public static void update(int id, String cabinetName, int floor, String filePath) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "UPDATE cabinete SET denumire=?, etaj=?, image=? WHERE id=?")) {
+            pstmt.setString(1, cabinetName);
+            pstmt.setInt(2, floor);
+            pstmt.setString(3, filePath);
+            pstmt.setInt(4, id);
+
+            pstmt.executeUpdate();
+        }
+    }
+
+    public static void update(int id, String cabinetName, int floor) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "UPDATE cabinete SET denumire=?, etaj=? WHERE id=?")) {
+            pstmt.setString(1, cabinetName);
+            pstmt.setInt(2, floor);
+            pstmt.setInt(3, id);
+
             pstmt.executeUpdate();
         }
     }
@@ -53,7 +88,7 @@ public class CabinetDAO {
         List<Cabinet> cabinetList = new ArrayList<>();
         try (Connection con = Database.getConnection();
              Statement stmt = con.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT id, denumire, etaj, image FROM cabinete")) {
+             ResultSet rs = stmt.executeQuery("SELECT id, denumire, etaj, image FROM cabinete order by id")) {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String denumire = rs.getString("denumire");

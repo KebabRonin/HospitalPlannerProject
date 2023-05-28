@@ -1,0 +1,41 @@
+#shifts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  #shifts-table th,
+  #shifts-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #0ecd24;
+  }
+  
+  #shifts-table td {
+    background-color: #77e368;
+  }
+  
+  #shifts-table th {
+    background-color: #0ecd24;
+  }
+
+.add-shift,
+.view-appointments,
+.view-shifts,
+.edit-doctor,
+.edit-option {
+  padding: 6px 12px;
+  background-color: #1f60c7;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-shift:hover,
+.view-appointments:hover,
+.view-shifts:hover,
+.edit-doctor:hover,
+.edit-option:hover {
+  background-color: #38409d;
+}

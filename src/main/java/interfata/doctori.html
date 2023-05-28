@@ -5,6 +5,7 @@
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link rel="stylesheet" type="text/css" href="doctori.css" />
     <link rel="stylesheet" href="calendar.css" />
+    <link rel="stylesheet" href="make_appointment.css">
     <link rel="icon" href="hospitalplanner-website-favicon-color.png" />
   </head>
   <body>
@@ -40,6 +41,14 @@
                 id="menu-item-92362"
                 class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
               >
+                <a href="shifts.html" itemprop="url"
+                  ><span class="menu-item-text">Shifts</span></a
+                >
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
                 <span class="explore-button">Doctors</span>
               </li>
               <li
@@ -69,6 +78,7 @@
         <h1 id="doctors-title">Doctors</h1>
         <div id="doctor-list"></div>
         <div id="appointments-list"></div>
+        <div id="shifts-list"></div>
 
         <div id="add-doctor-button">
           <button id="add-doctor-button" onclick="showDoctorForm()">
@@ -150,62 +160,99 @@
         </div>
 
         <div id="shift-form" class="cabinet-form">
-          <h2>Add a shift</h2>
+          <h2 id="shift-form-title">Add a shift</h2>
           <form
             id="add-shift-form"
-            onsubmit="event.preventDefault(); addshift();"
+            onsubmit="event.preventDefault()"
           >
             <div id="calendar"></div>
-            <div class="form-group">
-              <label for="shift-specialization">Start Hour</label>
+
+            <div class="form-group-start-hour">
+              <label id="start-hours-field-name" for="shift-specialization">Start Hour</label>
               <select
-                id="shift-specialization"
+                id="shift-start-hour"
                 class="shift-choose"
-                name="specialization"
+                name="start-hour"
                 required
               >
                 <option value="-1">Choose a starting hour</option>
-                <option value="6">6:00</option>
-                <option value="7">7:00</option>
-                <option value="8">8:00</option>
-                <option value="9">9:00</option>
-                <option value="10">10:00</option>
-                <option value="11">11:00</option>
+                <option value="0:00">00:00</option>
+                <option value="1:00">1:00</option>
+                <option value="2:00">2:00</option>
+                <option value="3:00">3:00</option>
+                <option value="4:00">4:00</option>
+                <option value="5:00">5:00</option>
+                <option value="6:00">6:00</option>
+                <option value="7:00">7:00</option>
+                <option value="8:00">8:00</option>
+                <option value="9:00">9:00</option>
+                <option value="10:00">10:00</option>
+                <option value="11:00">11:00</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">13:00</option>
+                <option value="14:00">14:00</option>
+                <option value="15:00">15:00</option>
+                <option value="16:00">16:00</option>
+                <option value="17:00">17:00</option>
+                <option value="18:00">18:00</option>
+                <option value="19:00">19:00</option>
+                <option value="20:00">20:00</option>
+                <option value="21:00">21:00</option>
+                <option value="22:00">22:00</option>
+                <option value="23:00">23:00</option>
               </select>
             </div>
             <div class="form-group">
               <label for="shift-cabinet-name">End Hour</label>
               <select
-                id="shift-cabinet"
+                id="shift-end-hour"
                 class="shift-choose"
-                name="cabinet"
+                name="end-hour"
                 required
               >
                 <option value="-1">Choose an ending hour</option>
-                <option value="14">14:00</option>
-                <option value="15">15:00</option>
-                <option value="16">16:00</option>
-                <option value="17">17:00</option>
-                <option value="18">18:00</option>
-                <option value="19">19:00</option>
+                <option value="0:00">00:00</option>
+                <option value="1:00">1:00</option>
+                <option value="2:00">2:00</option>
+                <option value="3:00">3:00</option>
+                <option value="4:00">4:00</option>
+                <option value="5:00">5:00</option>
+                <option value="6:00">6:00</option>
+                <option value="7:00">7:00</option>
+                <option value="8:00">8:00</option>
+                <option value="9:00">9:00</option>
+                <option value="10:00">10:00</option>
+                <option value="11:00">11:00</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">13:00</option>
+                <option value="14:00">14:00</option>
+                <option value="15:00">15:00</option>
+                <option value="16:00">16:00</option>
+                <option value="17:00">17:00</option>
+                <option value="18:00">18:00</option>
+                <option value="19:00">19:00</option>
+                <option value="20:00">20:00</option>
+                <option value="21:00">21:00</option>
+                <option value="22:00">22:00</option>
+                <option value="23:00">23:00</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="specific-shift-form-group" id="specific-shift-form-group">
               <button
                 class="back-btn"
+                id="back-button"
                 type="button"
                 onclick="goBackFromShift()"
               >
                 Back
               </button>
-              <button class="add-btn" type="submit">Add</button>
+              <button class="add-btn" id="add-shift-btn" type="button">Add</button>
             </div>
           </form>
         </div>
       </div>
     </main>
-    <script src="doctori.js"></script>
     <script src="calendar.js"></script>
-    <script src="calendar_range.js"></script>
+    <script src="doctori.js"></script>
   </body>
 </html>

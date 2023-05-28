@@ -22,11 +22,11 @@
   .edit-appointment {
     padding: 5px 10px;
     border: none;
-    background-color: #4CAF50;
+    background-color: #1f60c7;
     color: white;
     cursor: pointer;
   }
   
   .edit-appointment:hover {
-    background-color: #45a049;
+    background-color: #38409d;
   }

@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.ResultSet;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -110,15 +111,19 @@ public class WebController {
     @GetMapping(value = "/doctors-info/{id_doctor}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Doctor getDoctorInfo(@PathVariable("id_doctor") Integer id_doctor) throws SQLException {
-        var doctor = new DoctorDAO();
-        return doctor.findById(id_doctor);
+        return DoctorDAO.findById(id_doctor);
+    }
+
+    @GetMapping(value = "/doctor-shifts/{id_doctor}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Program> getShiftsOfDoctor(@PathVariable("id_doctor") Integer id_doctor) throws SQLException {
+        return ProgramDoctorDAO.getOfDoctor(id_doctor);
     }
 
     @GetMapping(value = "/doctor-appointments/{id_doctor}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Programare> getDoctorAppointmentsInfo(@PathVariable("id_doctor") Integer id_doctor) throws SQLException {
-        var programare = new ProgramareDAO();
-        return programare.findAllOfDoctorId(id_doctor);
+        return ProgramareDAO.findAllOfDoctorId(id_doctor);
     }
 
     @GetMapping(value = "/cabinet-doctor/{id_cabinet}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -133,23 +138,110 @@ public class WebController {
         return ProgramareDAO.findAll();
     }
 
+    @GetMapping(value = "/all-shifts", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Program> getAllShifts() throws SQLException {
+        return ProgramDoctorDAO.getAllShifts();
+    }
+
+    @PostMapping("/add-shift")
+    @ResponseBody
+    public String addShift(@RequestParam("id_doctor") Integer id_doctor,
+                             @RequestParam("dates") String datesString,
+                             @RequestParam("start-hour") String start_hour,
+                             @RequestParam("end-hour") String end_hour) {
+        try {
+            List<Date> dates = new LinkedList<>();
+            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            String[] sub = datesString.split(",");
+            for (String str : sub) {
+                dates.add(new java.sql.Date(d.parse(str).getTime()));
+            }
+
+            SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+            java.util.Date parsedDate = format.parse(start_hour);
+            Time startHour = new Time(parsedDate.getTime());
+            parsedDate = format.parse(end_hour);
+            Time endHour = new Time(parsedDate.getTime());
+
+            for(Date date : dates){
+                ProgramDoctorDAO.create(id_doctor,date,startHour,endHour);
+            }
+            if(dates.size()>1){
+                return "Shifts added successfully!";
+            }
+            return "Shift added successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to add the shift.";
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping(value = "/update-shift/{id_shift}")
+    @ResponseBody
+    public String updateShift(@PathVariable("id_shift") Integer id_shift,
+                              @RequestParam("id_doctor") Integer id_doctor,
+                              @RequestParam("dates") String dateString,
+                              @RequestParam("start-hour") String start_hour,
+                              @RequestParam("end-hour") String end_hour) {
+        try {
+            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            Date date = new java.sql.Date(d.parse(dateString).getTime());
+
+            SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+            java.util.Date parsedDate = format.parse(start_hour);
+            Time startHour = new Time(parsedDate.getTime());
+            parsedDate = format.parse(end_hour);
+            Time endHour = new Time(parsedDate.getTime());
+
+            ProgramDoctorDAO.update(id_shift,id_doctor,date,startHour,endHour);
+            return "Shift edited successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to edit the shift.";
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @DeleteMapping(value = "/delete-shift/{id_shift}")
+    @ResponseBody
+    public String deleteShift(@PathVariable("id_shift") Integer id_shift) {
+        try {
+            ProgramDoctorDAO.delete(id_shift);
+            return "Shift deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the shift.";
+        }
+    }
+
+    @GetMapping(value = "/shift-info/{id_shift}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Program getShiftInfo(@PathVariable("id_shift") Integer id_shift) throws SQLException {
+        return ProgramDoctorDAO.findById(id_shift);
+    }
+
     @PostMapping("/add-cabinet")
     @ResponseBody
     public String addCabinet(@RequestParam("cabinet-name") String cabinetName,
                              @RequestParam("floor") Integer floor,
                              @RequestParam("cabinet-picture") MultipartFile cabinetPicture) {
         try {
-            var cabinet = new CabinetDAO();
-            if (cabinet.findByName(cabinetName) != 0) {
-                return "Cabinet already exists.";
-            }
             String fileName = cabinetPicture.getOriginalFilename();
-            String folderPath = "C:\\Users\\KebabWarrior\\Desktop\\HospitalPlannerProject\\src\\main\\java\\interfata\\cabinet_pictures\\";
-            String filePath = folderPath + fileName;
+            if(!Objects.equals(fileName, "")){
+                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
+                String filePath = folderPath + fileName;
+                cabinetPicture.transferTo(new File(filePath));
 
-            cabinetPicture.transferTo(new File(filePath));
+                CabinetDAO.create(cabinetName,floor,filePath);
+            }
+            else{
+                CabinetDAO.create(cabinetName,floor);
+            }
 
-            cabinet.create(cabinetName, filePath, floor);
             return "Cabinet added successfully!";
         } catch (IOException e) {
             e.printStackTrace();
@@ -157,6 +249,35 @@ public class WebController {
         } catch (SQLException e) {
             e.printStackTrace();
             return "Failed to add the cabinet.";
+        }
+    }
+
+    @PostMapping("/update-cabinet")
+    @ResponseBody
+    public String updateCabinet(@RequestParam("id") Integer id,
+                                @RequestParam("cabinet-name") String cabinetName,
+                                @RequestParam("floor") Integer floor,
+                                @RequestParam("cabinet-picture") MultipartFile cabinetPicture) {
+        try {
+            String fileName = cabinetPicture.getOriginalFilename();
+            if(!Objects.equals(fileName, "")){
+                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
+                String filePath = folderPath + fileName;
+                cabinetPicture.transferTo(new File(filePath));
+
+                CabinetDAO.update(id,cabinetName,floor,filePath);
+            }
+            else{
+                CabinetDAO.update(id,cabinetName,floor);
+            }
+
+            return "Cabinet edited successfully!";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Failed to upload the file.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to edit the cabinet.";
         }
     }
 
@@ -170,18 +291,21 @@ public class WebController {
                             @RequestParam("email") String email,
                             @RequestParam("image") MultipartFile image) {
         try {
-            var doctor = new DoctorDAO();
-            if (doctor.findByEmail(email) != 0) {
-                return "Doctor already exists.";
-            }
+            System.out.println("SPECIALIZARE: " + specialization + " CABINET: " + cabinet);
             String fileName = image.getOriginalFilename();
-            String folderPath = "C:\\Users\\KebabWarrior\\Desktop\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
-            String filePath = folderPath + fileName;
+            if(!Objects.equals(fileName, "")){
+                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
+                String filePath = folderPath + fileName;
+                image.transferTo(new File(filePath));
 
-            image.transferTo(new File(filePath));
-
-            doctor.create(firstName,lastName,phone,email,filePath,cabinet);
-            int id_doctor = doctor.findByEmail(email);
+                var doctor = new DoctorDAO();
+                doctor.create(firstName,lastName,phone,email,filePath,cabinet);
+            }
+            else{
+                var doctor = new DoctorDAO();
+                doctor.create(firstName,lastName,phone,email,cabinet);
+            }
+            int id_doctor = DoctorDAO.findId(firstName,lastName,phone,email,cabinet);
 
             var doctorSpecializare = new DoctoriSpecializariDAO();
             doctorSpecializare.create(id_doctor, specialization);
@@ -193,6 +317,45 @@ public class WebController {
         } catch (SQLException e) {
             e.printStackTrace();
             return "Failed to add the doctor.";
+        }
+    }
+
+    @PostMapping("/update-doctor")
+    @ResponseBody
+    public String updateDoctor(@RequestParam("id") Integer id,
+                               @RequestParam("first-name") String firstName,
+                               @RequestParam("last-name") String lastName,
+                               @RequestParam("specialization") Integer specialization,
+                               @RequestParam("cabinet") Integer cabinet,
+                               @RequestParam("phone") String phone,
+                               @RequestParam("email") String email,
+                               @RequestParam("image") MultipartFile image) {
+        try {
+            System.out.println("SPECIALIZARE: " + specialization + "CABINET: " + cabinet);
+            String fileName = image.getOriginalFilename();
+            if(!Objects.equals(fileName, "")){
+                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
+                String filePath = folderPath + fileName;
+                image.transferTo(new File(filePath));
+
+                var doctor = new DoctorDAO();
+                doctor.update(id,firstName,lastName,phone,email,filePath,cabinet);
+            }
+            else{
+                var doctor = new DoctorDAO();
+                doctor.update(id,firstName,lastName,phone,email,cabinet);
+            }
+
+            var doctorSpecializare = new DoctoriSpecializariDAO();
+            doctorSpecializare.update(id, specialization);
+
+            return "Doctor edited successfully!";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Failed upload the file.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed edit the doctor.";
         }
     }
 
@@ -247,44 +410,6 @@ public class WebController {
         System.out.println(doctor_ids.length);
         Arrays.stream(doctor_ids).forEach((id) -> System.out.println(id));
         return "";
-    }
-
-    @PostMapping("/update-doctor")
-    @ResponseBody
-    public String updateDoctor(@RequestParam("id") Integer id,
-                            @RequestParam("first-name") String firstName,
-                            @RequestParam("last-name") String lastName,
-                            @RequestParam("specialization") Integer specialization,
-                            @RequestParam("cabinet") Integer cabinet,
-                            @RequestParam("phone") String phone,
-                            @RequestParam("email") String email,
-                            @RequestParam("image") MultipartFile image) {
-        try {
-            String fileName = image.getOriginalFilename();
-            if(!Objects.equals(fileName, "")){
-                String folderPath = "C:\\Users\\Alex\\Documents\\GitHub\\HospitalPlannerProject\\src\\main\\java\\interfata\\doctor_pictures\\";
-                String filePath = folderPath + fileName;
-                image.transferTo(new File(filePath));
-
-                var doctor = new DoctorDAO();
-                doctor.update(id,firstName,lastName,phone,email,filePath,cabinet);
-            }
-            else{
-                var doctor = new DoctorDAO();
-                doctor.update(id,firstName,lastName,phone,email,cabinet);
-            }
-
-            var doctorSpecializare = new DoctoriSpecializariDAO();
-            doctorSpecializare.update(id, specialization);
-
-            return "Doctor edited successfully!";
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Failed upload the file.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Failed edit the doctor.";
-        }
     }
 
     @GetMapping(value = "/your_appointments", produces = MediaType.APPLICATION_JSON_VALUE)

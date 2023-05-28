@@ -131,7 +131,33 @@ function deleteCabinet(id_cabinet){
 }
 
 function saveCabinet(id_cabinet){
+  const formular = document.getElementById("cabinet-form");
+  var button = document.getElementById("add-cabinet-button");
+  const cabinetListDiv = document.getElementById("cabinet-list");
+  const cabinetsTitle = document.getElementById("cabinets-title");
 
+  const form = document.getElementById("add-cabinet-form");
+  const formData = new FormData(form);
+
+  formData.append("id",id_cabinet);
+  fetch("/update-cabinet", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.text())
+    .then((result) => {
+      console.log(result);
+      formular.style.display = "none";
+      button.style.display = "flex";
+
+      fetchCabinete();
+      resetForm();
+      cabinetListDiv.style.display = "flex";
+      cabinetsTitle.style.display = "block";
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 }
 
 function showCabinetForm() {
