@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProgramareDAO {
-    public void create(int id_pacient, int id_doctor, Date data_programare, Time ora_programare) throws SQLException {
+    public static void create(int id_pacient, int id_doctor, Date data_programare, Time ora_programare) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
                      "insert into programari (id_pacient, id_doctor, data_programare, ora_programare) values (?,?,?,?)")) {
@@ -72,7 +72,7 @@ public class ProgramareDAO {
         }
     }
 
-    public List<Programare> findAllOfPatientId(int id_pacient) throws SQLException {
+    public static List<Programare> findAllOfPatientId(int id_pacient) throws SQLException {
         List<Programare> rez = new ArrayList<>();
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();

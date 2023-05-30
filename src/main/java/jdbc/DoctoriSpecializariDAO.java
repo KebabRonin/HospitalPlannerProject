@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DoctoriSpecializariDAO {
-    public void create(Integer id_doctor, Integer id_specializare) throws SQLException {
+    public static void create(Integer id_doctor, Integer id_specializare) throws SQLException {
 
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
@@ -34,7 +34,7 @@ public class DoctoriSpecializariDAO {
         }
     }
 
-    public void update(Integer id_doctor, Integer id_specializare) throws SQLException {
+    public static void update(Integer id_doctor, Integer id_specializare) throws SQLException {
         Connection con = Database.getConnection();
         try (PreparedStatement pstmt = con.prepareStatement(
                 "UPDATE doctori_specializari SET id_specializare=? WHERE id_doctor=?")) {
@@ -48,7 +48,7 @@ public class DoctoriSpecializariDAO {
         }
     }
 
-    public void delete(int id_doctor) throws SQLException {
+    public static void delete(int id_doctor) throws SQLException {
         Connection con = Database.getConnection();
         try (PreparedStatement pstmt = con.prepareStatement(
                 "DELETE FROM doctori_specializari WHERE id_doctor = ?")) {

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class DoctorDAO {
-    public void create(String nume, String prenume, String nr_telefon, String email, String image, Integer id_cabinet) throws SQLException {
+    public static void create(String nume, String prenume, String nr_telefon, String email, String image, Integer id_cabinet) throws SQLException {
         try (Connection con = Database.getConnection();
         PreparedStatement pstmt = con.prepareStatement(
                 "insert into doctori (nume,prenume,nr_telefon,email,image,id_cabinet) values (?,?,?,?,?,?)")) {
@@ -22,7 +22,7 @@ public class DoctorDAO {
         }
     }
 
-    public void create(String nume, String prenume, String nr_telefon, String email, Integer id_cabinet) throws SQLException {
+    public static void create(String nume, String prenume, String nr_telefon, String email, Integer id_cabinet) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
                      "insert into doctori (nume,prenume,nr_telefon,email,id_cabinet) values (?,?,?,?,?)")) {
@@ -37,8 +37,8 @@ public class DoctorDAO {
     }
 
     public static void delete(int doctorId) throws SQLException {
-        Connection con = Database.getConnection();
-        try (PreparedStatement pstmt = con.prepareStatement(
+        try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(
                 "DELETE FROM doctori WHERE id = ?")) {
             pstmt.setInt(1, doctorId);
             pstmt.executeUpdate();
@@ -46,16 +46,16 @@ public class DoctorDAO {
     }
 
     public static void delete() throws SQLException {
-        Connection con = Database.getConnection();
-        try (PreparedStatement pstmt = con.prepareStatement(
+        try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(
                 "DELETE FROM doctori")) {
             pstmt.executeUpdate();
         }
     }
 
-    public void update(Integer id, String nume, String prenume, String nr_telefon, String email, String image, Integer id_cabinet) throws SQLException {
-        Connection con = Database.getConnection();
-        try (PreparedStatement pstmt = con.prepareStatement(
+    public static void update(Integer id, String nume, String prenume, String nr_telefon, String email, String image, Integer id_cabinet) throws SQLException {
+        try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(
                 "UPDATE doctori SET nume=?, prenume=?, nr_telefon=?, email=?, image=?, id_cabinet=? WHERE id=?")) {
             pstmt.setString(1, nume);
             pstmt.setString(2, prenume);
@@ -69,9 +69,9 @@ public class DoctorDAO {
         }
     }
 
-    public void update(Integer id, String nume, String prenume, String nr_telefon, String email, Integer id_cabinet) throws SQLException {
-        Connection con = Database.getConnection();
-        try (PreparedStatement pstmt = con.prepareStatement(
+    public static void update(Integer id, String nume, String prenume, String nr_telefon, String email, Integer id_cabinet) throws SQLException {
+        try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(
                 "UPDATE doctori SET nume=?, prenume=?, nr_telefon=?, email=?, id_cabinet=? WHERE id=?")) {
             pstmt.setString(1, nume);
             pstmt.setString(2, prenume);
@@ -117,7 +117,7 @@ public class DoctorDAO {
         }
     }
 
-    public int findByName(String name) throws SQLException {
+    public static int findByName(String name) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
                      "select id from doctori where name=(?)")) {
@@ -127,7 +127,7 @@ public class DoctorDAO {
         }
     }
 
-    public List<Doctor> findAll() throws SQLException {
+    public static List<Doctor> findAll() throws SQLException {
         List<Doctor> rez = new ArrayList<>();
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
@@ -257,7 +257,7 @@ public class DoctorDAO {
         }
     }
 
-    public String findEmailById(Integer id_doctor) throws SQLException {
+    public static String findEmailById(Integer id_doctor) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement("select email from doctori where id=(?)");
         ) {
@@ -267,7 +267,7 @@ public class DoctorDAO {
         }
     }
 
-    public List<Doctor> findBySpecialisation(int specializare) throws SQLException {
-        return this.findAll().stream().filter((d) -> d.getSpecializari().stream().anyMatch((spec) -> spec.getId() == specializare)).collect(Collectors.toList());
+    public static List<Doctor> findBySpecialisation(int specializare) throws SQLException {
+        return DoctorDAO.findAll().stream().filter((d) -> d.getSpecializari().stream().anyMatch((spec) -> spec.getId() == specializare)).collect(Collectors.toList());
     }
 }

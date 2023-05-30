@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PacientDAO{
-    public void create(String prenume, String nume, String data_nastere, String adresa, String nr_telefon, String email, String parola) throws SQLException {
+    public static void create(String prenume, String nume, String data_nastere, String adresa, String nr_telefon, String email, String parola) throws SQLException {
         try (Connection con = Database.getConnection();
         PreparedStatement pstmt = con.prepareStatement(
                 "insert into pacienti (prenume,nume,data_nastere,adresa,nr_telefon,email,parola) values (?,?,?,?,?,?,?)")) {
@@ -37,7 +37,7 @@ public class PacientDAO{
         }
     }
 
-    public int findByName(String name) throws SQLException {
+    public static int findByName(String name) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
                      "select id from pacienti where name=(?)")) {
@@ -67,7 +67,7 @@ public class PacientDAO{
         }
     }
 
-    public int findByEmail(String email) throws SQLException {
+    public static int findByEmail(String email) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement("select id from pacienti where email=(?)");
                      ) {
@@ -77,7 +77,7 @@ public class PacientDAO{
         }
     }
 
-    public String findPasswordById(int id) throws SQLException {
+    public static String findPasswordById(int id) throws SQLException {
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(

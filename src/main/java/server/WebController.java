@@ -12,8 +12,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.MediaType;
 
 
-import javax.print.Doc;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,9 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebController {
     String administrator_username = "admin";
     String administrator_password = "admin";
-    private static Map<Integer, Pacient> connectedUsers = new ConcurrentHashMap<>();
+    private static final Map<Integer, Pacient> connectedUsers = new ConcurrentHashMap<>();
     int userId;
-    private static String filesPath = "src/main/java/interfata/";
+    private static final String filesPath = "src/main/java/interfata/";
     @GetMapping("/")
     @ResponseBody
     public byte[] index(@CookieValue(value="userId", required=false) Integer userId) {
@@ -50,14 +48,12 @@ public class WebController {
     @GetMapping("/{*file_path}")
     @ResponseBody
     public byte[] get(@PathVariable(value="file_path") String filePath) {
-        System.out.println(filePath);
         return WebController.load_file(filesPath + filePath);
     }
 
     @GetMapping("/resources/{*file_path}")
     @ResponseBody
     public byte[] get_resource(@PathVariable(value="file_path") String filePath) {
-        System.out.println(filePath);
         return WebController.load_file(filesPath + filePath);
     }
 
@@ -108,29 +104,25 @@ public class WebController {
     @GetMapping(value = "/cabinete-info", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Cabinet> getCabinetsInfo() throws SQLException {
-        var cabinet = new CabinetDAO();
-        return cabinet.getAllCabinets();
+        return CabinetDAO.getAllCabinets();
     }
 
     @GetMapping(value = "/specializari-info", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Specializare> getSpecializariInfo() throws SQLException {
-        var specializare = new SpecializareDAO();
-        return specializare.getAllSpecializari();
+        return SpecializareDAO.getAllSpecializari();
     }
 
     @GetMapping(value = "/specializari-info/existing-doctors", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Specializare> getSpecializariInfoExisting() throws SQLException {
-        var specializare = new SpecializareDAO();
-        return specializare.getAllExistingSpecializari();
+        return SpecializareDAO.getAllExistingSpecializari();
     }
 
     @GetMapping(value = "/specializari-info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Specializare getSpecializareInfo(@PathVariable("id") int id) throws SQLException {
-        var specializare = new SpecializareDAO();
-        return specializare.findById(id);
+        return SpecializareDAO.findById(id);
     }
 
     @GetMapping(value = "/specializare-info/{id_doctor}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -144,13 +136,12 @@ public class WebController {
     @GetMapping(value = "/doctors-info", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Doctor> getDoctorsInfo(@RequestParam(value = "specialisation", required = false) Integer id_specialisation) throws SQLException {
-        var doctor = new DoctorDAO();
         List<Doctor> doctors;
         if(id_specialisation != null) {
-            doctors = doctor.findBySpecialisation(id_specialisation);
+            doctors = DoctorDAO.findBySpecialisation(id_specialisation);
         }
         else {
-            doctors = doctor.findAll();
+            doctors = DoctorDAO.findAll();
         }
         return doctors;
     }
@@ -165,8 +156,7 @@ public class WebController {
     @GetMapping(value = "/pacient-info/{id_pacient}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Pacient getPacientInfo(@PathVariable("id_pacient") Integer id_pacient) throws SQLException {
-        Pacient pacient = PacientDAO.findById(id_pacient);
-        return pacient;
+        return PacientDAO.findById(id_pacient);
     }
 
     @GetMapping(value = "/users-info", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -304,8 +294,7 @@ public class WebController {
     @GetMapping(value = "/cabinet-info/{id_cabinet}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Cabinet getCabinetInfo(@PathVariable("id_cabinet") Integer id_cabinet) throws SQLException {
-        Cabinet cabinet = CabinetDAO.findById(id_cabinet);
-        return cabinet;
+        return CabinetDAO.findById(id_cabinet);
     }
 
     @GetMapping(value = "/doctors-info/{id_doctor}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -540,11 +529,9 @@ public class WebController {
     @ResponseBody
     public String deleteDoctor(@PathVariable("id") Integer id_doctor) {
         try {
-            var doctor = new DoctorDAO();
-            doctor.delete(id_doctor);
+            DoctorDAO.delete(id_doctor);
 
-            var doctorSpecializare = new DoctoriSpecializariDAO();
-            doctorSpecializare.delete(id_doctor);
+            DoctoriSpecializariDAO.delete(id_doctor);
 
             return "Doctor deleted successfully!";
         } catch (SQLException e) {
@@ -572,9 +559,8 @@ public class WebController {
     public List<Integer> getProgram(@RequestBody RequestProgramare request, @RequestParam("month") int month/*@RequestParam(value = "dates", required = false)String datesLStr, @RequestParam(value = "doctors", required = false) String docsLStr*/) throws Exception {
         System.out.println(request);
         List<Doctor> doctorList = null;
-        DoctorDAO doctorDAO = new DoctorDAO();
         if (request.getDoctor() > 0) {
-            Doctor d = doctorDAO.findById(request.getDoctor());
+            Doctor d = DoctorDAO.findById(request.getDoctor());
             if (d != null) {
                 doctorList = new LinkedList<>();
                 doctorList.add(d);
@@ -584,7 +570,7 @@ public class WebController {
             }
         }
         else if (request.getSpecializare() > 0) {
-            doctorList = doctorDAO.findBySpecialisation(request.getSpecializare());
+            doctorList = DoctorDAO.findBySpecialisation(request.getSpecializare());
         }
 
         if(doctorList == null) {//any doctor
@@ -632,9 +618,8 @@ public class WebController {
                                     @RequestParam(value = "doctor", required = false) Integer doctor,
                                     @RequestParam(value = "specialisation", required = false) Integer specialisation) throws Exception {
         List<Doctor> doctorList = null;
-        DoctorDAO doctorDAO = new DoctorDAO();
         if (doctor != null) {
-            Doctor d = doctorDAO.findById(doctor);
+            Doctor d = DoctorDAO.findById(doctor);
             if (d != null) {
                 doctorList = new LinkedList<>();
                 doctorList.add(d);
@@ -644,7 +629,7 @@ public class WebController {
             }
         }
         else if (specialisation != null) {
-            doctorList = doctorDAO.findBySpecialisation(specialisation);
+            doctorList = DoctorDAO.findBySpecialisation(specialisation);
         }
         else {
             throw new Exception("No specialisation selected");
@@ -686,9 +671,8 @@ public class WebController {
                                        @RequestParam(value = "doctor", required = false) Integer doctor,
                                        @RequestParam(value = "specialisation", required = false) Integer specialisation) throws Exception {
         List<Doctor> doctorList = null;
-        DoctorDAO doctorDAO = new DoctorDAO();
         if (doctor != null) {
-            Doctor d = doctorDAO.findById(doctor);
+            Doctor d = DoctorDAO.findById(doctor);
             if (d != null) {
                 doctorList = new LinkedList<>();
                 doctorList.add(d);
@@ -698,7 +682,7 @@ public class WebController {
             }
         }
         else if (specialisation != null) {
-            doctorList = doctorDAO.findBySpecialisation(specialisation);
+            doctorList = DoctorDAO.findBySpecialisation(specialisation);
         }
         else {
             throw new Exception("No specialisation selected");
@@ -770,17 +754,14 @@ public class WebController {
                 Path p = Paths.get("./"+filesPath+"/doctor_pictures/"+fileName);
                 String filePath = p.toString();
                 image.transferTo(p);
-                var doctor = new DoctorDAO();
-                doctor.create(firstName,lastName,phone,email,filePath,cabinet);
+                DoctorDAO.create(firstName,lastName,phone,email,filePath,cabinet);
             }
             else{
-                var doctor = new DoctorDAO();
-                doctor.create(firstName,lastName,phone,email,cabinet);
+                DoctorDAO.create(firstName,lastName,phone,email,cabinet);
             }
 
             int idDoctor = DoctorDAO.findMaxId();
-            var doctorSpecializare = new DoctoriSpecializariDAO();
-            doctorSpecializare.create(idDoctor, specialization);
+            DoctoriSpecializariDAO.create(idDoctor, specialization);
             return ResponseEntity.ok("Doctor added successfully!");
         } catch (IOException e) {
             e.printStackTrace();
@@ -821,16 +802,13 @@ public class WebController {
                 Path p = Paths.get("./"+filesPath+"/doctor_pictures/"+fileName);
                 String filePath = p.toString();
                 image.transferTo(p);
-                var doctor = new DoctorDAO();
-                doctor.update(id,firstName,lastName,phone,email,filePath,cabinet);
+                DoctorDAO.update(id,firstName,lastName,phone,email,filePath,cabinet);
             }
             else{
-                var doctor = new DoctorDAO();
-                doctor.update(id,firstName,lastName,phone,email,cabinet);
+                DoctorDAO.update(id,firstName,lastName,phone,email,cabinet);
             }
 
-            var doctorSpecializare = new DoctoriSpecializariDAO();
-            doctorSpecializare.update(id, specialization);
+            DoctoriSpecializariDAO.update(id, specialization);
             return "Doctor edited successfully!";
         } catch (IOException e) {
             e.printStackTrace();
@@ -841,14 +819,11 @@ public class WebController {
         }
     }
 
-
-    //@GetMapping(value = "/your_appointments", produces = MediaType.APPLICATION_JSON_VALUE)
-
     @GetMapping(value = "/appointments/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Programare> getUserAppointments(@PathVariable("userId") int userId) {
         try {
-            return new ProgramareDAO().findAllOfPatientId(userId);
+            return ProgramareDAO.findAllOfPatientId(userId);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve doctor information.");
@@ -859,10 +834,8 @@ public class WebController {
     @ResponseBody
     public void makeAppointment(@PathVariable("userId") int userId, @RequestBody RequestProgramare request) throws Exception {
         System.out.println(request);
-        ProgramareDAO prog = new ProgramareDAO();
 
         List<Doctor> doctorList = null;
-        DoctorDAO doctorDAO = new DoctorDAO();
 
         if(request.getSpecializare() <= 0 && request.getDoctor() <= 0) {
             throw new Exception("Not enough data");
@@ -872,7 +845,7 @@ public class WebController {
             throw new Exception("Specialisation conflict with doctor");
         }
         if (request.getDoctor() > 0) {
-            Doctor d = doctorDAO.findById(request.getDoctor());
+            Doctor d = DoctorDAO.findById(request.getDoctor());
             if (d != null) {
                 doctorList = new LinkedList<>();
                 doctorList.add(d);
@@ -882,30 +855,29 @@ public class WebController {
             }
         }
         else if (request.getSpecializare() > 0) {
-            doctorList = doctorDAO.findBySpecialisation(request.getSpecializare());
+            doctorList = DoctorDAO.findBySpecialisation(request.getSpecializare());
         }
         else {
             throw new Exception("No specialisation selected");
         }
 
         if(request.getSpecializare() > 0 && request.getDoctor() <= 0) {
-            for (Doctor i : new DoctorDAO().findBySpecialisation(request.getSpecializare())) {
+            for (Doctor i : DoctorDAO.findBySpecialisation(request.getSpecializare())) {
                 try {
-                    prog.create(userId, i.getId(), request.getDates().get(0), request.getHour());
+                    ProgramareDAO.create(userId, i.getId(), request.getDates().get(0), request.getHour());
                 } catch(SQLException e) {
                     System.out.println(e);
                 }
             }
         }
         else {
-            prog.create(userId, request.getDoctor(), request.getDates().get(0), request.getHour());
+            ProgramareDAO.create(userId, request.getDoctor(), request.getDates().get(0), request.getHour());
         }
     }
 
     @GetMapping(value = "/appointment-info/{appointmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Programare getAppointmentById(@PathVariable("appointmentId") Integer appointmentId) throws SQLException {
-        var programare = ProgramareDAO.findById(appointmentId);
         return ProgramareDAO.findById(appointmentId);
     }
 
@@ -914,16 +886,15 @@ public class WebController {
     public String login(@RequestParam("email") String email_login,
                          @RequestParam("password") String password, HttpServletResponse response) {
         try {
-            var pacient = new PacientDAO();
-            int id = pacient.findByEmail(email_login);
+            int id = PacientDAO.findByEmail(email_login);
             if(id == 0){
                 return "Email doesn't exist.";
             }
-            if(!password.equals(pacient.findPasswordById(id))){
-                System.out.println(password + " != " + pacient.findPasswordById(id));
+            if(!password.equals(PacientDAO.findPasswordById(id))){
+                System.out.println(password + " != " + PacientDAO.findPasswordById(id));
                 return "Password incorrect.";
             }
-            connectedUsers.put(id, pacient.findById(id));
+            connectedUsers.put(id, PacientDAO.findById(id));
             userId = id;
             Cookie cookie = new Cookie("userId", Integer.toString(id));
             response.addCookie(cookie);
@@ -960,14 +931,13 @@ public class WebController {
                          @RequestParam("email") String email,
                          @RequestParam("password") String password, HttpServletResponse response) {
         try {
-            var pacient = new PacientDAO();
-            int id = pacient.findByEmail(email);
+            int id = PacientDAO.findByEmail(email);
             if(id != 0){
                 return "Failed to sign up.";
             }
-            pacient.create(firstName, lastName,date,address,phone,email,password);
-            userId = pacient.findByEmail(email);
-            connectedUsers.put(userId, pacient.findById(userId));
+            PacientDAO.create(firstName, lastName,date,address,phone,email,password);
+            userId = PacientDAO.findByEmail(email);
+            connectedUsers.put(userId, PacientDAO.findById(userId));
             Cookie cookie = new Cookie("userId", Integer.toString(userId));
             response.addCookie(cookie);
             return "Sign up successful!";

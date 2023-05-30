@@ -83,7 +83,7 @@ public class ProgramDoctorDAO {
         }
     }
 
-    public List<Program> getOnDay(Date date) throws SQLException {
+    public static List<Program> getOnDay(Date date) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
                      "select id, id_doctor, zi, timp_inceput, timp_final from program_doctori where zi=(?)")) {
@@ -129,7 +129,7 @@ public class ProgramDoctorDAO {
         }
     }
 
-    public List<Program> getOfDoctorOnDay(int id_doctor, Date date) throws SQLException {
+    public static List<Program> getOfDoctorOnDay(int id_doctor, Date date) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
                      "select id, id_doctor, zi, timp_inceput, timp_final from program_doctori where zi=(?) AND id_doctor=(?)")) {

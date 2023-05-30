@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SpecializareDAO {
-    public void create(String denumire) throws SQLException {
+    public static void create(String denumire) throws SQLException {
         try (Connection con = Database.getConnection();
         PreparedStatement pstmt = con.prepareStatement(
                 "insert into specializari (denumire) values (?)")) {
@@ -15,7 +15,7 @@ public class SpecializareDAO {
         }
     }
 
-    public List<Specializare> findSpecializariByDoctorId(int id_doctor) throws SQLException{
+    public static List<Specializare> findSpecializariByDoctorId(int id_doctor) throws SQLException{
         List<Specializare> specializari = new ArrayList<>();
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
@@ -67,7 +67,7 @@ public class SpecializareDAO {
         }
     }
 
-    public List<Specializare> getAllSpecializari() throws SQLException {
+    public static List<Specializare> getAllSpecializari() throws SQLException {
         List<Specializare> specializari = new ArrayList<>();
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
@@ -82,7 +82,7 @@ public class SpecializareDAO {
         }
     }
 
-//    public Specializare findById(int id) throws SQLException {
+//    public static Specializare findById(int id) throws SQLException {
 //        List<Specializare> specializari = new ArrayList<>();
 //        try (Connection con = Database.getConnection();
 //             PreparedStatement pstmt = con.prepareStatement("select id,denumire from specializari where id = (?)");
@@ -93,7 +93,7 @@ public class SpecializareDAO {
 //        }
 //    }
 
-    public List<Specializare> getAllExistingSpecializari() throws SQLException {
+    public static List<Specializare> getAllExistingSpecializari() throws SQLException {
         List<Specializare> specializari = new ArrayList<>();
         try (Connection con = Database.getConnection();
              Statement stmt = con.createStatement();

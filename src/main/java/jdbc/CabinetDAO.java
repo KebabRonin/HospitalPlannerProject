@@ -68,7 +68,7 @@ public class CabinetDAO {
         }
     }
 
-    public List<String> findCabineteByDoctorId(int id_doctor) throws SQLException{
+    public static List<String> findCabineteByDoctorId(int id_doctor) throws SQLException{
         List<String> cabinete = new ArrayList<>();
         try (Connection con = Database.getConnection();
         Statement stmt = con.createStatement();
@@ -92,7 +92,7 @@ public class CabinetDAO {
         }
     }
 
-    public List<Cabinet> getAllCabinets() throws SQLException {
+    public static List<Cabinet> getAllCabinets() throws SQLException {
         List<Cabinet> cabinetList = new ArrayList<>();
         try (Connection con = Database.getConnection();
              Statement stmt = con.createStatement();
@@ -109,7 +109,7 @@ public class CabinetDAO {
         return cabinetList;
     }
 
-    public int findByName(String name) throws SQLException {
+    public static int findByName(String name) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
                      "select id from cabinete where denumire=(?)")) {
