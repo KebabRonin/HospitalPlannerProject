@@ -39,6 +39,19 @@ public class SpecializareDAO {
         }
     }
 
+    public static Specializare findById(int id_specializare) throws SQLException{
+        try (Connection con = Database.getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select denumire from specializari where id='" + id_specializare + "'")) {
+            while (rs.next()) {
+                String denumire = rs.getString("denumire");
+                return new Specializare(id_specializare,denumire);
+            }
+            return null;
+        }
+    }
+
     public List<Specializare> getAllSpecializari() throws SQLException {
         List<Specializare> specializari = new ArrayList<>();
         try (Connection con = Database.getConnection();
@@ -54,14 +67,14 @@ public class SpecializareDAO {
         }
     }
 
-    public Specializare findById(int id) throws SQLException {
-        List<Specializare> specializari = new ArrayList<>();
-        try (Connection con = Database.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("select id,denumire from specializari where id = (?)");
-             ) {
-            pstmt.setInt(1,id);
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next() ? new Specializare(rs.getInt(1), rs.getString(2)) : null;
-        }
-    }
+//    public Specializare findById(int id) throws SQLException {
+//        List<Specializare> specializari = new ArrayList<>();
+//        try (Connection con = Database.getConnection();
+//             PreparedStatement pstmt = con.prepareStatement("select id,denumire from specializari where id = (?)");
+//             ) {
+//            pstmt.setInt(1,id);
+//            ResultSet rs = pstmt.executeQuery();
+//            return rs.next() ? new Specializare(rs.getInt(1), rs.getString(2)) : null;
+//        }
+//    }
 }

@@ -1,39 +1,63 @@
 body {
     margin: 0;
     padding: 0;
-    background-image: url('background.jpg');
+    background-image: url('admin_background.jpg');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
   }
   
   .container {
+    margin-top: 130px;
     display: flex;
     justify-content: center;
+  }
+  
+  .profile-card {
+    border: 3px solid #224155;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    text-align: center;
+    width: 550px;
+    margin: 0 auto;
+  }
+  
+  .profile-info {
+    display: flex;
     align-items: center;
-    height: 70vh;
-    width: 150vh;
-    background-color: #f1f1f1;
-    padding: 20px;
-    box-sizing: border-box;
-    border-radius: 10px;
-    border: 5px solid rgb(16, 182, 215);
+    margin-top: 20px;
   }
   
-  .profile-image {
-    width: 220px;
-    height: 220px;
-    margin-right: 90px;
-    margin-left: 20px;
-    border-radius: 50%;
+  .profile-image { 
+    border: 3.5px solid #224155;
+    margin-left: 30px;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    margin-right: 60px;
+    margin-bottom: 80px;
+    border-radius: 6px;
   }
   
-  #profile-info {
-    height: 220px;
-    font-size: 23px;
+  .profile-details {
+    flex-grow: 1;
   }
   
-  #profile-info p {
-    margin-bottom: 8px; /* Add the desired space between rows */
+  .profile-info p {
+    margin-bottom: 15px;
+    font-size: 18px;
+    line-height: 1.4;
+    text-align: left;
   }
+  
+  .profile-info strong {
+    font-weight: bold;
+  }
+  
+  .profile-info span {
+    color: #777;
+  }
+  
   

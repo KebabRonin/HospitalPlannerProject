@@ -5,7 +5,7 @@
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link rel="stylesheet" type="text/css" href="doctori.css" />
     <link rel="stylesheet" href="calendar.css" />
-    <link rel="stylesheet" href="make_appointment.css">
+    <link rel="stylesheet" href="make_appointment.css" />
     <link rel="icon" href="hospitalplanner-website-favicon-color.png" />
   </head>
   <body>
@@ -33,6 +33,30 @@
                 id="menu-item-92362"
                 class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
               >
+                <a href="users.html" itemprop="url"
+                  ><span class="menu-item-text">Users</span></a
+                >
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
+                <a href="doctori.html" itemprop="url"
+                  ><span class="explore-button">Doctors</span></a
+                >
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
+                <a href="cabinete.html" itemprop="url"
+                  ><span class="menu-item-text">Cabinets</span></a
+                >
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
                 <a href="appointments.html" itemprop="url"
                   ><span class="menu-item-text">Appointments</span></a
                 >
@@ -45,25 +69,14 @@
                   ><span class="menu-item-text">Shifts</span></a
                 >
               </li>
-              <li
-                id="menu-item-92362"
-                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
-              >
-                <span class="explore-button">Doctors</span>
-              </li>
-              <li
-                id="menu-item-92362"
-                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
-              >
-                <a href="cabinete.html" itemprop="url"
-                  ><span class="menu-item-text">Cabinets</span></a
-                >
-              </li>
             </ul>
             <ul
               id="menu-homepage-menu-right"
               class="landing-header_menu-right first-in-focus"
             >
+              <li class="landing-button logout_button">
+                <button class="delete-all-data" id="delete-all-data-btn" onclick="deleteAllData()">DELETE ALL DATA</button>
+              </li>
               <li class="landing-button logout_button">
                 <a href="landing.html" itemprop="url">Log out</a>
               </li>
@@ -85,13 +98,15 @@
             Add doctor
           </button>
         </div>
+        <div id="delete-all-doctors-button"> 
+          <button id="delete-all-doctors-button" onclick="deleteAllDoctors()">
+            Delete All
+          </button>
+        </div>
 
         <div id="doctor-form" class="cabinet-form">
           <h2 id="form-title">Add a Doctor</h2>
-          <form
-            id="add-doctor-form"
-            onsubmit="event.preventDefault();"
-          >
+          <form id="add-doctor-form" onsubmit="event.preventDefault();">
             <div class="form-group">
               <label for="doctor-first-name">First Name</label>
               <input
@@ -123,7 +138,7 @@
               <label for="doctor-cabinet-name">Cabinet</label>
               <select
                 id="doctor-cabinet"
-                class="doctor-choose"
+                class="cabinet-choose"
                 name="cabinet"
                 required
               ></select>
@@ -154,21 +169,27 @@
               <button class="back-btn" type="button" onclick="goBack()">
                 Back
               </button>
-              <button class="add-btn" id="add-button" type="button" onclick="addDoctor()">Add</button>
+              <button
+                class="add-btn"
+                id="add-button"
+                type="button"
+                onclick="addDoctor()"
+              >
+                Add
+              </button>
             </div>
           </form>
         </div>
 
         <div id="shift-form" class="cabinet-form">
           <h2 id="shift-form-title">Add a shift</h2>
-          <form
-            id="add-shift-form"
-            onsubmit="event.preventDefault()"
-          >
+          <form id="add-shift-form" onsubmit="event.preventDefault()">
             <div id="calendar"></div>
 
             <div class="form-group-start-hour">
-              <label id="start-hours-field-name" for="shift-specialization">Start Hour</label>
+              <label id="start-hours-field-name" for="shift-specialization"
+                >Start Hour</label
+              >
               <select
                 id="shift-start-hour"
                 class="shift-choose"
@@ -237,7 +258,10 @@
                 <option value="23:00">23:00</option>
               </select>
             </div>
-            <div class="specific-shift-form-group" id="specific-shift-form-group">
+            <div
+              class="specific-shift-form-group"
+              id="specific-shift-form-group"
+            >
               <button
                 class="back-btn"
                 id="back-button"
@@ -246,7 +270,77 @@
               >
                 Back
               </button>
-              <button class="add-btn" id="add-shift-btn" type="button">Add</button>
+              <button class="add-btn" id="add-shift-btn" type="button">
+                Add
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="container" id="container" style="display: none">
+          <h2>Edit Appointment</h2>
+          <form id="appointment-form">
+            <div id="calendar-appointments"></div>
+
+            <label id="label-specializare" for="specializare"
+              >Preferred specialisation:</label
+            >
+            <select id="specializare" name="specializare"></select>
+
+            <label for="doctor">Preferred Doctor:</label>
+            <select id="doctor" name="doctor"></select>
+
+            <label for="hour">Available Hours:</label>
+            <select id="hour" name="hour">
+              <option value="any">Any hour</option>
+              <option value="7:00">7:00</option>
+              <option value="7:30">7:30</option>
+              <option value="8:00">8:00</option>
+              <option value="8:30">8:30</option>
+              <option value="9:00">9:00</option>
+              <option value="9:30">9:30</option>
+              <option value="10:00">10:00</option>
+              <option value="10:30">10:30</option>
+              <option value="11:00">11:00</option>
+              <option value="11:30">11:30</option>
+              <option value="12:00">12:00</option>
+              <option value="12:30">12:30</option>
+              <option value="13:00">13:00</option>
+              <option value="13:30">13:30</option>
+              <option value="14:00">14:00</option>
+              <option value="14:30">14:30</option>
+              <option value="15:00">15:00</option>
+              <option value="15:30">15:30</option>
+              <option value="16:00">16:00</option>
+              <option value="16:30">16:30</option>
+              <option value="17:00">17:00</option>
+              <option value="17:30">17:30</option>
+              <option value="18:00">18:00</option>
+              <option value="18:30">18:30</option>
+              <option value="19:00">19:00</option>
+              <option value="19:30">19:30</option>
+              <option value="20:00">20:00</option>
+              <option value="20:30">20:30</option>
+              <option value="21:00">21:00</option>
+              <option value="21:30">21:30</option>
+            </select>
+
+            <div
+              class="specific-appointments-form-group"
+              id="specific-appointments-form-group"
+            >
+              <button
+                class="back-btn-edit-appointment"
+                id="back-button-edit-appointments"
+                type="button"
+                onclick="goBackFromAppointmentsEdit()"
+              >
+                Back
+              </button>
+              <button class="add-btn" id="add-appointment-btn" type="button">
+                Save
+              </button>
+              <button class="delete-btn" id="delete-appointment-btn" type="button">Delete</button>
             </div>
           </form>
         </div>

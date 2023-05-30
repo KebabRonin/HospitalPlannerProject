@@ -42,7 +42,7 @@ loginButton.addEventListener("click", function(event) {
       console.log(response);
 
       if (response === "Log in successful!") {
-        window.location.href = "appointments.html";
+        window.location.href = "users.html";
       }
       else if(response === "Incorrect."){
         updateErrorMessage(passwordInput, loginErrorMessage, "", 'Invalid data.');

@@ -3,7 +3,8 @@
 <head>
   <title>HospitalPlanner</title>
   <link rel="stylesheet" type="text/css" href="styles.css" />
-  <link rel="stylesheet" type="text/css" href="admin.css" />
+  <link rel="stylesheet" type="text/css" href="users.css" />
+  <link rel="stylesheet" type="text/css" href="cabinete.css" />
   <link rel="icon" href="hospitalplanner-website-favicon-color.png" />
 </head>
 <body>
@@ -16,16 +17,25 @@
         <nav id="landing-header_menu" class="landing-header_menu landing-header_menu--microsite" aria-label="Navigation" data-translated="1">
           <ul id="menu-landing-header_menu-left" class="landing-header_menu-left">
             <li id="menu-item-92362" class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362">
-                <a href="doctori.html" itemprop="url"><span class="menu-item-text">Doctors</span></a>
-              </li>
+              <a href="users.html" itemprop="url"><span class="explore-button">Users</span></a>
+            </li>
+            <li id="menu-item-92362" class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362">
+              <a href="doctori.html" itemprop="url"><span class="menu-item-text">Doctors</span></a>
+            </li>
             <li id="menu-item-92362" class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362">
               <a href="cabinete.html" itemprop="url"><span class="menu-item-text">Cabinets</span></a>
             </li>
             <li id="menu-item-92362" class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362">
               <a href="appointments.html" itemprop="url"><span class="menu-item-text">Appointments</span></a>
             </li>
+            <li id="menu-item-92362" class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362">
+              <a href="shifts.html" itemprop="url"><span class="menu-item-text">Shifts</span></a>
+            </li>
           </ul>
           <ul id="menu-homepage-menu-right" class="landing-header_menu-right first-in-focus">
+            <li class="landing-button logout_button">
+              <button class="delete-all-data" id="delete-all-data-btn" onclick="deleteAllData()">DELETE ALL DATA</button>
+            </li>
             <li class="landing-button logout_button">
               <a href="landing.html" itemprop="url">Log out</a>
             </li>
@@ -34,7 +44,14 @@
       </div>
     </header>
   </div>
-  
-  <script src="administrator.js"></script>
+  <div id="users-list"></div>
+
+  <div id="delete-users-button">
+    <button id="delete-users-button" onclick="deleteAllUsers()">
+      Delete All
+    </button>
+  </div>
+
+<script src="users.js"></script>
 </body>
 </html>

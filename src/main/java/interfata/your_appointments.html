@@ -1,66 +1,74 @@
 <html>
-<head>
+  <head>
     <title>Your Appointments</title>
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link rel="stylesheet" type="text/css" href="your_appointments.css" />
     <link rel="icon" href="hospitalplanner-website-favicon-color.png" />
-
-</head>
-<body>
-<div class="landing-section-header">
-    <header id="landing-header-id" class="landing-header" role="banner">
+  </head>
+  <body>
+    <div class="landing-section-header">
+      <header id="landing-header-id" class="landing-header" role="banner">
         <div class="landing-header-elements">
-            <a href="landing.html" class="logo-link">
-                <img alt="" src="hospitalplanner-high-resolution-color-logo.png" class="logo_landing" />
-            </a>
-            <nav
-                    id="landing-header_menu"
-                    class="landing-header_menu landing-header_menu--microsite"
-                    aria-label="Navigation"
-                    data-translated="1"
+          <a href="landing.html" class="logo-link">
+            <img
+              alt=""
+              src="hospitalplanner-high-resolution-color-logo.png"
+              class="logo_landing"
+            />
+          </a>
+          <nav
+            id="landing-header_menu"
+            class="landing-header_menu landing-header_menu--microsite"
+            aria-label="Navigation"
+            data-translated="1"
+          >
+            <ul
+              id="menu-landing-header_menu-left"
+              class="landing-header_menu-left"
             >
-                <ul
-                        id="menu-landing-header_menu-left"
-                        class="landing-header_menu-left"
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
+                <a href="admin.html" itemprop="url"
+                  ><span class="menu-item-text">Profile</span></a
                 >
-                    <li
-                            id="menu-item-92362"
-                            class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
-                    >
-                        <a href="admin.html" itemprop="url"
-                        ><span class="menu-item-text">Profile</span></a
-                        >
-                    </li>
-                    <li
-                            id="menu-item-92362"
-                            class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
-                    >
-                        <span class="explore-button">Your Appointments</span>
-                    </li>
-                    <li
-                            id="menu-item-92362"
-                            class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
-                    >
-                        <a href="make_appointment.html" itemprop="url"
-                        ><span class="menu-item-text">Make an Appointment</span></a
-                        >
-                    </li>
-                </ul>
-                <ul
-                        id="menu-homepage-menu-right"
-                        class="landing-header_menu-right first-in-focus"
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
+                <a href="your_appointments.html" itemprop="url"><span class="explore-button">Your Appointments</span></a>
+              </li>
+              <li
+                id="menu-item-92362"
+                class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362"
+              >
+                <a href="make_appointment.html" itemprop="url"
+                  ><span class="menu-item-text">Make an Appointment</span></a
                 >
-                    <li class="landing-button logout_button">
-                        <a href="login.html" itemprop="url">Log out</a>
-                    </li>
-                </ul>
-            </nav>
+              </li>
+            </ul>
+            <ul
+              id="menu-homepage-menu-right"
+              class="landing-header_menu-right first-in-focus"
+            >
+              <li class="landing-button logout_button">
+                <a href="landing.html" itemprop="url">Log out</a>
+              </li>
+            </ul>
+          </nav>
         </div>
-    </header>
-</div>
-<div class="container" id="appointment-info">
-    <h2>Appointments</h2>
+      </header>
     </div>
-<script src="your_appointments.js"></script>
-</body>
+    <div>
+        <h1>Appointments</h1>
+    <div class="container" id="appointment-info">
+    </div>
+    <div class="no-appointments" id="no-appointments">
+        <p>You don't have any appointments.</p>
+    </div>
+    </div>
+    <script src="your_appointments.js"></script>
+  </body>
 </html>

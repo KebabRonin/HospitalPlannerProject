@@ -2,6 +2,7 @@ package jdbc;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DoctoriSpecializariDAO {
@@ -14,6 +15,22 @@ public class DoctoriSpecializariDAO {
             pstmt.setInt(2,id_specializare);
 
             pstmt.executeUpdate();
+        }
+    }
+
+    public static int findIdSpecializareByIdDoctor(Integer id_doctor) throws SQLException{
+        try (Connection con = Database.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(
+                     "select id_specializare from doctori_specializari where id_doctor=?")) {
+            pstmt.setInt(1,id_doctor);
+
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id_specializare");
+            } else {
+                return 0;
+            }
+
         }
     }
 

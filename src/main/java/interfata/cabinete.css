@@ -24,27 +24,6 @@ h1 {
   font-size: 30px;
 }
 
-#add-cabinet-button {
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  margin-top: 13px;
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin-right: 30px;
-}
-
-#add-cabinet-button button {
-  background-color: green;
-  color: white;
-  font-size: 20px;
-  padding: 5px 50px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
 .cabinet-form {
   display: none;
   margin: 100px auto;
@@ -128,8 +107,6 @@ h1 {
 }
 
 
-
-
 #cabinet-list-table {
   width: 100%;
   border-collapse: collapse;
@@ -148,7 +125,7 @@ h1 {
 }
 
 #cabinet-list-table th {
-  padding: 5px;
+  padding: 7px;
   background-color: #f2f2f2;
 }
 
@@ -192,4 +169,51 @@ h1 {
   border: none;
   cursor: pointer;
   border-radius: 5px;
+}
+
+#delete-all-doctors-button {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  margin-top: 13px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-right: 10px;
+}
+
+#delete-all-doctors-button button {
+  background-color: red;
+  color: white;
+  font-size: 20px;
+  padding: 5px 50px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#add-cabinet-button {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  margin-top: 13px;
+  position: absolute;
+  top: 0;
+  right: 65px;
+  margin-right: 30px;
+}
+
+#add-cabinet-button button {
+  background-color: green;
+  color: white;
+  font-size: 20px;
+  padding: 5px 50px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cabinet-choose {
+  width: 105%;
+  padding: 9px;
 }

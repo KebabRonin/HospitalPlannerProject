@@ -1,17 +1,3 @@
-/*
- * Date Format 1.2.3
- * (c) 2007-2009 Steven Levithan <stevenlevithan.com>
- * MIT license
- *
- * Includes enhancements by Scott Trenda <scott.trenda.net>
- * and Kris Kowal <cixar.com/~kris.kowal/>
- *
- * Accepts a date, a mask, or a date and a mask.
- * Returns a formatted version of the given date.
- * The date defaults to the current date/time.
- * The mask defaults to dateFormat.masks.default.
- */
-
 var dateFormat = function () {
 	var	token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
 		timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
@@ -23,23 +9,19 @@ var dateFormat = function () {
 			return val;
 		};
 
-	// Regexes and supporting functions are cached through closure
 	return function (date, mask, utc) {
 		var dF = dateFormat;
 
-		// You can't provide utc if you skip other args (use the "UTC:" mask prefix)
 		if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
 			mask = date;
 			date = undefined;
 		}
 
-		// Passing date through Date applies Date.parse, if necessary
 		date = date ? new Date(date) : new Date;
 		if (isNaN(date)) throw SyntaxError("invalid date");
 
 		mask = String(dF.masks[mask] || mask || dF.masks["default"]);
 
-		// Allow setting the utc argument via the mask
 		if (mask.slice(0, 4) == "UTC:") {
 			mask = mask.slice(4);
 			utc = true;
@@ -91,7 +73,6 @@ var dateFormat = function () {
 	};
 }();
 
-// Some common format strings
 dateFormat.masks = {
 	"default":      "ddd mmm dd yyyy HH:MM:ss",
 	shortDate:      "m/d/yy",
@@ -107,7 +88,6 @@ dateFormat.masks = {
 	isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
 };
 
-// Internationalization strings
 dateFormat.i18n = {
 	dayNames: [
 		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
@@ -119,7 +99,6 @@ dateFormat.i18n = {
 	]
 };
 
-// For convenience...
 Date.prototype.format = function (mask, utc) {
 	return dateFormat(this, mask, utc);
 };
@@ -129,11 +108,19 @@ function appendHtml(el, str) {
   div.innerHTML = str;
   el.appendChild(div);
 }
-//java date is "YYYY-MM-DD"
+
 function format_date(date) {
         var d = new Date(date);
         return d.format("dddd, mmmm d, yyyy");
 }
+
+function getDoctorImage(imagePath) {
+	if (imagePath) {
+	  return getLastTwoPartsOfPath(imagePath);
+	}
+	return "doctor_pictures/no_doctor_picture.png";
+}
+
 async function load_appointments() {
 	var ainfoel = document.getElementById('appointment-info');
 	ainfoel.innerHTML = ''
@@ -152,24 +139,61 @@ async function load_appointments() {
 			resp = await fetch('/doctors-info/'+el.id_doctor, {method:"GET"});
 			var data = await resp.json();
 			let nume_doctor = "Dr. "+data.nume+" "+data.prenume;
+			let image_doctor = data.image;
 			//(nume_doctor, data_programare, ora_programare, data.id_cabinet)
 			resp = await fetch('/cabinet-info/'+data.id_cabinet, {method:"GET"});
 			var data2 = await resp.json();
 			var ora_programare = el.ora_programare.split(':').slice(start=0, end=2).join(':');
+			var appointmentId = el.id;
 			appendHtml(ainfoel, `
 			<div class="appointment" id="appointment-info">
 				<div class="info">
-					<p>Doctor: ${nume_doctor}</p>
-					<p>Date: ${format_date(el.data_programare)}</p>
-					<p>Time: ${ora_programare}</p>
-					<p>Cabinet: ${data2.denumire}, ${data2.etaj}</p>
+					<img src="${getDoctorImage(image_doctor)}" alt="Doctor Image">
+					<p><strong>Doctor:</strong> ${nume_doctor}</p>
+					<p><strong>Date:</strong> ${format_date(el.data_programare)}</p>
+					<p><strong>Time:</strong> ${ora_programare}</p>
+					<p><strong>Cabinet:</strong> ${data2.denumire}</p>
+					<p><strong>Floor:</strong> ${data2.etaj}</p>
+					<button class="cancel-btn" appointment-id="${appointmentId}">Cancel Appointment</button>
 				</div>
 			</div>`);
+
+			ainfoel.addEventListener("click", (event) => {
+				if (event.target.classList.contains("cancel-btn")) {
+				  const appointmentId = event.target.getAttribute("appointment-id");
+				  deleteAppointment(appointmentId);
+				}
+			});
 		}
+
+		if (ainfoel.innerHTML === "") {
+			document.getElementById("no-appointments").style.display="flex";
+		} else {
+			document.getElementById("no-appointments").style.display="none";
+	}
 	})
 	.catch(error => {
 		console.error('Failed to retrieve user information:', error);
 	});
+
+}
+
+function deleteAppointment(appointmentId){
+	fetch(`/delete-appointment/${appointmentId}`, {
+		method: 'DELETE'
+	  })
+		.then(response => {
+		  if (response.ok) {
+			console.log('Appointment deleted successfully');
+			location.reload();
+			window.scrollTo(0,0);
+		  } else {
+			console.error('Error deleting appointment');
+		  }
+		})
+		.catch(error => {
+		  console.error('Error deleting appointment', error);
+		});
 }
 
 load_appointments();

@@ -60,6 +60,14 @@ public class CabinetDAO {
         }
     }
 
+    public static void delete() throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "DELETE FROM cabinete")) {
+            pstmt.executeUpdate();
+        }
+    }
+
     public List<String> findCabineteByDoctorId(int id_doctor) throws SQLException{
         List<String> cabinete = new ArrayList<>();
         try (Connection con = Database.getConnection();
@@ -110,6 +118,7 @@ public class CabinetDAO {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
+
     public static Cabinet findById(int id) throws SQLException {
 
         try (Connection con = Database.getConnection();

@@ -16,7 +16,7 @@
         <nav id="landing-header_menu" class="landing-header_menu landing-header_menu--microsite" aria-label="Navigation" data-translated="1">
           <ul id="menu-landing-header_menu-left" class="landing-header_menu-left">
             <li id="menu-item-92362" class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362">
-              <span class="explore-button">Profile</span>
+              <a href="admin.html" itemprop="url"><span class="explore-button">Profile</span></a>
             </li>
             <li id="menu-item-92362" class="mobile-hide menu-item menu-item-type-custom menu-item-object-custom menu-item-92362">
               <a href="your_appointments.html" itemprop="url"><span class="menu-item-text">Your Appointments</span></a>
@@ -27,19 +27,21 @@
           </ul>
           <ul id="menu-homepage-menu-right" class="landing-header_menu-right first-in-focus">
             <li class="landing-button logout_button">
-              <a href="login.html" itemprop="url">Log out</a>
+              <a href="landing.html" itemprop="url">Log out</a>
             </li>
           </ul>
         </nav>
       </div>
     </header>
-  </div>
-  <div style="display:flex; justify-content: center; z-index: 90; align-items: center;">
     <div class="container">
-      <img class="profile-image" src="patient.png" alt="Profile Image">
-      <div class="profile-info" id="profile-info"></div>
+      <div class="profile-card">
+        <div class="profile-info">
+          <img class="profile-image" src="patient2.png" alt="Profile Image">
+          <div class="profile-details" id="profile-details">
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
   <script src="admin.js"></script>
 </body>
 </html>

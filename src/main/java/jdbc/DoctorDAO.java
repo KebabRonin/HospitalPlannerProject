@@ -35,11 +35,19 @@ public class DoctorDAO {
         }
     }
 
-    public void delete(int doctorId) throws SQLException {
+    public static void delete(int doctorId) throws SQLException {
         Connection con = Database.getConnection();
         try (PreparedStatement pstmt = con.prepareStatement(
                 "DELETE FROM doctori WHERE id = ?")) {
             pstmt.setInt(1, doctorId);
+            pstmt.executeUpdate();
+        }
+    }
+
+    public static void delete() throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "DELETE FROM doctori")) {
             pstmt.executeUpdate();
         }
     }

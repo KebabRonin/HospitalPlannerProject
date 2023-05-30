@@ -47,6 +47,42 @@ public class ProgramDoctorDAO {
         }
     }
 
+    public static void delete(Date zi) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "DELETE from program_doctori WHERE zi=?")) {
+            pstmt.setDate(1, zi);
+            pstmt.executeUpdate();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void delete(Date zi, int doctorId) throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "DELETE from program_doctori WHERE zi=? and id_doctor=?")) {
+            pstmt.setDate(1, zi);
+            pstmt.setInt(2, doctorId);
+            pstmt.executeUpdate();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void delete() throws SQLException {
+        Connection con = Database.getConnection();
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "DELETE from program_doctori")) {
+            pstmt.executeUpdate();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
     public List<Program> getOnDay(Date date) throws SQLException {
         try (Connection con = Database.getConnection();
              PreparedStatement pstmt = con.prepareStatement(
@@ -103,6 +139,7 @@ public class ProgramDoctorDAO {
             return getResultList(rs);
         }
     }
+
     private static List<Program> getResultList(ResultSet rs) throws SQLException {
         List<Program> intervale = new LinkedList<>();
         while(rs.next()) {

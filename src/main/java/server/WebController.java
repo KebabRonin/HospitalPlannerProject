@@ -87,6 +87,14 @@ public class WebController {
         return specializare.findById(id);
     }
 
+    @GetMapping(value = "/specializare-info/{id_doctor}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Specializare getSpecializareByDoctorId(@PathVariable("id_doctor") Integer id_doctor) throws SQLException {
+        int id_specializare = DoctoriSpecializariDAO.findIdSpecializareByIdDoctor(id_doctor);
+        return SpecializareDAO.findById(id_specializare);
+
+    }
+
     @GetMapping(value = "/doctors-info", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Doctor> getDoctorsInfo() throws SQLException {
@@ -107,6 +115,138 @@ public class WebController {
     public Pacient getPacientInfo(@PathVariable("id_pacient") Integer id_pacient) throws SQLException {
         Pacient pacient = PacientDAO.findById(id_pacient);
         return pacient;
+    }
+
+    @GetMapping(value = "/users-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Pacient> getUsersInfo() throws SQLException {
+        return PacientDAO.findAll();
+    }
+
+    @DeleteMapping(value = "/delete-user/{userId}")
+    @ResponseBody
+    public String deleteUser(@PathVariable("userId") Integer userId) {
+        try {
+            PacientDAO.delete(userId);
+            return "User deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the user.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-shifts-date/{date}")
+    @ResponseBody
+    public String deleteShiftsOnDate(@PathVariable("date") String date) {
+        try {
+            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            ProgramDoctorDAO.delete(new java.sql.Date(d.parse(date).getTime()));
+            return "Shifts deleted successfully!";
+        } catch (SQLException | ParseException e) {
+            e.printStackTrace();
+            return "Failed to delete the shifts.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-shifts-date-doctor/{date}")
+    @ResponseBody
+    public String deleteShiftsOnDateForDoctor(@PathVariable("date") String date,
+                                              @RequestParam("doctor") Integer doctorId) {
+        try {
+            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            ProgramDoctorDAO.delete(new java.sql.Date(d.parse(date).getTime()),doctorId);
+            return "Shifts deleted successfully!";
+        } catch (SQLException | ParseException e) {
+            e.printStackTrace();
+            return "Failed to delete the shifts.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-appointments-date/{date}")
+    @ResponseBody
+    public String deleteAppointmentsOnDate(@PathVariable("date") String date) {
+        try {
+            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            ProgramareDAO.delete(new java.sql.Date(d.parse(date).getTime()));
+            return "Appointments deleted successfully!";
+        } catch (SQLException | ParseException e) {
+            e.printStackTrace();
+            return "Failed to delete appointments.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-appointments-date-doctor/{date}")
+    @ResponseBody
+    public String deleteAppointmentsOnDateForDoctor(@PathVariable("date") String date,
+                                                    @RequestParam("doctor") Integer doctorId) {
+        try {
+            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            ProgramareDAO.delete(new java.sql.Date(d.parse(date).getTime()),doctorId);
+            return "Appointments deleted successfully!";
+        } catch (SQLException | ParseException e) {
+            e.printStackTrace();
+            return "Failed to delete the appointments.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-all-users")
+    @ResponseBody
+    public String deleteAllUsers() {
+        try {
+            PacientDAO.delete();
+            return "User deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the user.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-all-doctors")
+    @ResponseBody
+    public String deleteAllDoctors() {
+        try {
+            DoctorDAO.delete();
+            return "Doctor deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the doctor.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-all-cabinete")
+    @ResponseBody
+    public String deleteAllCabinete() {
+        try {
+            CabinetDAO.delete();
+            return "Cabinet deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the cabinet.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-all-appointments")
+    @ResponseBody
+    public String deleteAllAppointments() {
+        try {
+            ProgramareDAO.delete();
+            return "Appointment deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the appointment.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-all-shifts")
+    @ResponseBody
+    public String deleteAllShifts() {
+        try {
+            ProgramDoctorDAO.delete();
+            return "Shift deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the shift.";
+        }
     }
 
     @GetMapping(value = "/cabinet-info/{id_cabinet}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -223,6 +363,57 @@ public class WebController {
         } catch (SQLException e) {
             e.printStackTrace();
             return "Failed to delete the shift.";
+        }
+    }
+
+    @DeleteMapping(value = "/delete-all-data")
+    @ResponseBody
+    public String deleteAllData() {
+        try (Connection connection = Database.getConnection()) {
+            String procedureCall = "CALL delete_all_data()";
+            try (CallableStatement statement = connection.prepareCall(procedureCall)) {
+                statement.execute();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete all data";
+        }
+        return "Successfully deleted all data";
+    }
+
+    @DeleteMapping(value = "/delete-appointment/{appointmentId}")
+    @ResponseBody
+    public String deleteAppointment(@PathVariable("appointmentId") Integer appointmentId) {
+        try {
+            ProgramareDAO.delete(appointmentId);
+            return "Appointment deleted successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to delete the appointment.";
+        }
+    }
+
+    @PostMapping(value = "/update-appointment/{appointmentId}")
+    @ResponseBody
+    public String updateAppointment(@PathVariable("appointmentId") Integer appointmentId,
+                                    @RequestParam("id_pacient") Integer id_pacient,
+                                      @RequestParam("doctor") Integer id_doctor,
+                                      @RequestParam("dates") String dateString,
+                                      @RequestParam("hour") String hour) {
+        try {
+            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            Date date = new java.sql.Date(d.parse(dateString).getTime());
+
+            SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+            java.util.Date parsedDate = format.parse(hour);
+            Time ora_programare = new Time(parsedDate.getTime());
+            ProgramareDAO.update(appointmentId,id_doctor,id_pacient,date,ora_programare);
+            return "Appointment edited successfully!";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to edit the appointment.";
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -487,6 +678,13 @@ public class WebController {
         }
 
         prog.create(userId, request.getDoctor(), request.getDates().get(0), request.getHour());
+    }
+
+    @GetMapping(value = "/appointment-info/{appointmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Programare getAppointmentById(@PathVariable("appointmentId") Integer appointmentId) throws SQLException {
+        var programare = ProgramareDAO.findById(appointmentId);
+        return ProgramareDAO.findById(appointmentId);
     }
 
     @PostMapping("/login")

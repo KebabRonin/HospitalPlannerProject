@@ -32,6 +32,8 @@ function editCabinet(id_cabinet) {
 }
 
 function editCabinetForm(cabinet){
+  const deleteAllButton = document.getElementById("delete-all-doctors-button");
+  deleteAllButton.style.display="none";
   document.getElementById("form-title").textContent = "Edit Cabinet";
   document.getElementById("cabinet-name").value = cabinet.denumire;
   document.getElementById("cabinet-floor").value = cabinet.etaj;
@@ -104,23 +106,14 @@ function resetForm(){
 }
 
 function deleteCabinet(id_cabinet){
-  var cabinetTitle = document.getElementById("cabinets-title");
-  var cabinets = document.getElementById("cabinet-list");
-  var button = document.getElementById("add-cabinet-button");
-  const form = document.getElementById("cabinet-form");
-  
   fetch(`/delete-cabinet/${id_cabinet}`, {
     method: 'DELETE'
   })
     .then(response => {
       if (response.ok) {
         console.log('Cabinet deleted successfully');
-        resetForm();
-        fetchCabinete();
-        form.style.display = "none";
-        cabinetTitle.style.display = "block";
-        cabinets.style.display = "flex";
-        button.style.display = "block";
+        location.reload();
+        window.scrollTo(0,0);
       } else {
         console.error('Error deleting cabinet');
       }
@@ -161,6 +154,8 @@ function saveCabinet(id_cabinet){
 }
 
 function showCabinetForm() {
+  const deleteAllButton = document.getElementById("delete-all-doctors-button");
+  deleteAllButton.style.display="none";
   var cabinetTitle = document.getElementById("cabinets-title");
   var cabinets = document.getElementById("cabinet-list");
   var button = document.getElementById("add-cabinet-button");
@@ -173,11 +168,7 @@ function showCabinetForm() {
 }
 
 function addCabinet() {
-  var cabinetTitle = document.getElementById("cabinets-title");
-  var formDiv = document.getElementById("cabinet-form");
   var form = document.getElementById("add-cabinet-form");
-  var cabinets = document.getElementById("cabinet-list");
-  var button = document.getElementById("add-cabinet-button");
   var formData = new FormData(form);
 
   fetch("/add-cabinet", {
@@ -187,12 +178,8 @@ function addCabinet() {
     .then((response) => response.text())
     .then((result) => {
       console.log(result);
-      formDiv.style.display = "none";
-      cabinetTitle.style.display = "block";
-      cabinets.style.display = "flex";
-      button.style.display = "flex";
-
-      fetchCabinete();
+      location.reload();
+      window.scrollTo(0,0);
     })
     .catch((error) => {
       console.error(error);
@@ -205,14 +192,16 @@ function handleFileInputChange(input) {
 }
 
 function goBack() {
+  const deleteAllButton = document.getElementById("delete-all-doctors-button");
+  deleteAllButton.style.display="block";
   var cabinetTitle = document.getElementById("cabinets-title");
   var cabinets = document.getElementById("cabinet-list");
   cabinetTitle.style.display = "block";
   cabinets.style.display = "flex";
   document.getElementById("cabinet-form").style.display = "none";
   document.getElementById("add-cabinet-button").style.display = "flex";
-
   resetForm();
+  window.scrollTo(0,0);
 }
 
 function getDoctorsByCabinet(id_cabinet) {
@@ -306,7 +295,7 @@ function fetchCabinete() {
       } else {
         const noCabinetsRow = document.createElement("tr");
         noCabinetsRow.innerHTML = `
-          <td colspan="5">No cabinets found.</td>
+          <td colspan="6">No cabinets found.</td>
         `;
         tableBody.appendChild(noCabinetsRow);
 
@@ -320,3 +309,39 @@ function fetchCabinete() {
 }
 
 fetchCabinete();
+
+function deleteAllData(){
+  fetch(`/delete-all-data`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (response.ok) {
+        console.log('All data deleted successfully');
+        location.reload();
+        window.scrollTo(0,0);
+      } else {
+        console.error('Error deleting all data');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting all data', error);
+    });
+}
+
+function deleteAllCabinete(){
+  fetch(`/delete-all-cabinete`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (response.ok) {
+        console.log('All cabinets deleted successfully');
+        location.reload();
+        window.scrollTo(0,0);
+      } else {
+        console.error('Error deleting all cabinets');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting all cabinets', error);
+    });
+}
