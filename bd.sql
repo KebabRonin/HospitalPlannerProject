@@ -168,6 +168,31 @@ $$;
 
 ALTER PROCEDURE public.add_constraints() OWNER TO postgres;
 
+create or replace function public.get_free_hours_of_doctor_on_date(p_id_doctor INTEGER, p_date DATE) RETURNS CHARACTER VARYING LANGUAGE PLPGSQL AS
+$$
+DECLARE
+	v_i RECORD;
+	v_moment INTEGER;
+	v_raspuns CHARACTER VARYING := '';
+BEGIN
+	FOR v_i in (SELECT zi, timp_inceput, timp_final FROM program_doctori where id_doctor = p_id_doctor and zi = p_date) LOOP
+		v_moment := EXTRACT(HOUR FROM v_i.timp_inceput);
+		WHILE (v_moment < EXTRACT(HOUR FROM v_i.timp_final)) LOOP
+			IF NOT EXISTS (SELECT * FROM programari WHERE id_doctor = p_id_doctor AND data_programare = v_i.zi AND ora_programare = (v_moment||':00')::TIME) THEN
+				v_raspuns := CONCAT(v_raspuns, ','||v_moment||':00');
+			END IF;
+			IF NOT EXISTS (SELECT * FROM programari WHERE id_doctor = p_id_doctor AND data_programare = v_i.zi AND ora_programare = (v_moment||':30')::TIME) THEN
+				v_raspuns := CONCAT(v_raspuns, ','||v_moment||':30');
+			END IF;
+			v_moment := v_moment + 1;
+		END LOOP;
+	END LOOP;
+	
+	RETURN SUBSTR(v_raspuns, 2);
+END;
+$$;
+
+ALTER FUNCTION public.get_free_hours_of_doctor_on_date OWNER TO postgres;
 
 --
 -- TOC entry 239 (class 1255 OID 25385)
@@ -229,6 +254,20 @@ $$;
 
 
 ALTER FUNCTION public.normalize_hours() OWNER TO postgres;
+
+create function public.doctor_is_working() returns trigger language plpgsql as $$
+declare
+begin
+	IF NOT EXISTS (SELECT * from program_doctori where id_doctor = NEW.id_doctor and NEW.data_programare = zi and NEW.ora_programare between timp_inceput and timp_final) THEN
+		RAISE EXCEPTION 'Doctor doesn''t work at that time';
+	END IF;
+	return new;
+end;
+$$;
+
+ALTER FUNCTION public.doctor_is_working() OWNER TO postgres;
+
+create trigger programari_doctor_is_working before insert on programari for each row execute function public.doctor_is_working();
 
 
 --
@@ -434,15 +473,19 @@ BEGIN
 	END LOOP;
 	
 	FOR v_i IN 1..p_nr_programari LOOP
-		INSERT INTO programari(id_pacient, id_doctor, data_programare, ora_programare)
-			VALUES( ((random() * (SELECT MAX(id) - 1 FROM pacienti) + 1)::INT), 
-					((random() * (SELECT MAX(id) - 1 FROM doctori ) + 1)::INT),
-					NOW()::TIMESTAMP + ((random() * 7) || ' days')::INTERVAL,
-					DATE_BIN('30 minutes'::INTERVAL, NOW()::TIMESTAMP + (((random() * 47) * 30) || ' minutes')::INTERVAL, TIMESTAMP '2023-01-01 00:00:00')
-				  );
+		LOOP
+			BEGIN
+			INSERT INTO programari(id_pacient, id_doctor, data_programare, ora_programare)
+				VALUES( ((random() * (SELECT MAX(id) - 1 FROM pacienti) + 1)::INT), 
+						((random() * (SELECT MAX(id) - 1 FROM doctori ) + 1)::INT),
+						NOW()::TIMESTAMP + ((random() * 7) || ' days')::INTERVAL,
+						DATE_BIN('30 minutes'::INTERVAL, NOW()::TIMESTAMP + (((random() * 47) * 30) || ' minutes')::INTERVAL, TIMESTAMP '2023-01-01 00:00:00')
+					  );
+				EXIT;
+			EXCEPTION WHEN OTHERS THEN NULL;
+			END;
+		END LOOP;
 	END LOOP;
-	
-	
 END;
 $$;
 
