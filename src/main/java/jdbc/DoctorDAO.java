@@ -1,5 +1,6 @@
 package jdbc;
 import javax.print.Doc;
+import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -192,6 +193,34 @@ public class DoctorDAO {
             } else {
                 return 0;
             }
+        }
+    }
+
+    public static int findMaxId() throws SQLException {
+        try (Connection con = Database.getConnection();
+             PreparedStatement stmt = con.prepareStatement("SELECT MAX(id) AS max_id FROM doctori"))
+        {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int maxId = rs.getInt("max_id");
+                return maxId;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    public static List<Integer> findIdsList(String nume, String prenume, String nr_telefon, String email) throws SQLException{
+        List<Integer> ids = new ArrayList<>();
+        try (Connection con = Database.getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select id from doctori where nume='" + nume + "' and prenume='" + prenume + "' and nr_telefon='" + nr_telefon + "' and email='" + email + "'")) {
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                ids.add(id);
+            }
+            return ids;
         }
     }
 

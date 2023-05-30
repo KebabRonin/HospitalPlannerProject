@@ -1,42 +1,52 @@
 body {
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-    }
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  background-image: url(admin_background.jpg);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+}
 
-    .container {
-      max-width: 400px;
-          margin-left: 35%;
-          margin-top: 7%;
-      padding: 50px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
+.container {
+  max-width: 400px;
+  margin-left: 35%;
+  margin-top: 7%;
+  padding: 50px;
+  border: 3px solid #224155;
+  border-radius: 5px;
+  background-color: white;
+}
 
-    label {
-      display: block;
-      margin-bottom: 10px;
-    }
-    h2{
-        padding-bottom: 40px;
-        text-align: center;
-        font-size: 25px;
-    }
+label {
+  display: block;
+  margin-bottom: 10px;
+}
 
-    input[type="text"],
-    input[type="date"],
-    input[type="time"],
-    select {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
+h2 {
+  padding-bottom: 40px;
+  text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+}
 
-    input[type="button"] {
-      background-color: #4CAF50;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      cursor: pointer;
-    }
+input[type="text"],
+input[type="date"],
+input[type="time"],
+select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+input[type="button"] {
+  font-size: 16px;
+  background-color: green;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 15px;
+}

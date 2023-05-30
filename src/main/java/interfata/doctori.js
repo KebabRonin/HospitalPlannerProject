@@ -139,113 +139,19 @@ function formatBackDate(inputDate) {
   return `${day}-${month}-${year}`;
 }
 
-function showShiftsOfDoctor(id_doctor){
-  var doctorsTitle = document.getElementById("doctors-title");
-  var doctorList = document.getElementById("doctor-list");
-  var button = document.getElementById("add-doctor-button");
-  const deleteAllButton = document.getElementById("delete-all-doctors-button");
-  deleteAllButton.style.display="none";
-  doctorsTitle.style.display = "none";
-  doctorList.style.display = "none";
-  button.style.display = "none";
+function isNumber(input) {
+  var digitRegex = /^\d+$/;
+  return digitRegex.test(input);
+}
 
-  const shiftsList = document.getElementById("shifts-list");
-  shiftsList.innerHTML = "";
-  shiftsList.style.display = "block";
+function isValidEmail(email) {
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
 
-getDoctorInfo(id_doctor)
-  .then((doctor) => {
-    const shiftsTitle = document.createElement("h1");
-    shiftsTitle.textContent = `Shifts of Dr. ${doctor.nume} ${doctor.prenume}`;
-    shiftsList.appendChild(shiftsTitle);
-
-    fetch(`/doctor-shifts/${id_doctor}`)
-      .then((response) => response.json())
-      .then((data) => {
-        const shiftsByDate = {};
-        data.forEach((shift) => {
-          if (!shiftsByDate.hasOwnProperty(shift.zi)) {
-            shiftsByDate[shift.zi] = [];
-          }
-          shiftsByDate[shift.zi].push(shift);
-        });
-
-        Object.keys(shiftsByDate).forEach((date) => {
-          const shiftsTable = document.createElement("table");
-          shiftsTable.id = "shifts-table";
-
-          const tableCaption = document.createElement("caption");
-          tableCaption.textContent = formatDate(date);
-          shiftsTable.appendChild(tableCaption);
-
-          const tableHeader = document.createElement("thead");
-          tableHeader.innerHTML = `
-            <tr>
-              <th>ID</th>
-              <th>Date</th>
-              <th>Start Hour</th>
-              <th>End Hour</th>
-              <th>Cabinet</th>
-              <th>Options</th>
-            </tr>
-          `;
-          shiftsTable.appendChild(tableHeader);
-
-          const tableBody = document.createElement("tbody");
-          shiftsByDate[date].forEach((shift) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${shift.id}</td>
-              <td>${shift.zi}</td>
-              <td>${shift.startHour}</td>
-              <td>${shift.endHour}</td>
-              <td id="cabinet-name-${shift.id_doctor}"></td>
-              <td>
-                <button class="edit-option" data-shift-id="${shift.id}">Edit</button>
-              </td>
-            `;
-            getCabinetInfo(shift.id_doctor)
-              .then((cabinet) => {
-                const cabinetNameCell = row.querySelector(`#cabinet-name-${shift.id_doctor}`);
-                cabinetNameCell.textContent = cabinet.denumire;
-              })
-              .catch((error) => console.log(error));
-
-            row.querySelector(".edit-option").addEventListener("click", (event) => {
-              const shiftId = event.target.getAttribute("data-shift-id");
-              editShift(shiftId);
-            });
-
-            tableBody.appendChild(row);
-          });
-
-          shiftsTable.appendChild(tableBody);
-          const deleteButton = document.createElement("button");
-            deleteButton.className = "delete-table-button";
-            deleteButton.textContent = "Delete All";
-            deleteButton.addEventListener("click", () => {
-              deleteShiftsTable(date,id_doctor);
-            });
-
-            shiftsList.appendChild(shiftsTable);
-            shiftsList.appendChild(deleteButton);
-        });
-
-        const backButtonDiv = document.createElement("div");
-        backButtonDiv.id = "back-button-shifts";
-        const backButton = document.createElement("button");
-        backButton.textContent = "Back";
-        backButton.addEventListener("click", function() {
-          shiftsList.style.display = "none";
-          goBack();
-        });
-        backButtonDiv.appendChild(backButton);
-
-        shiftsList.appendChild(backButtonDiv);
-      })
-      .catch((error) => console.log(error));
-  })
-  .catch((error) => console.log(error));
+function hasOnlyLetters(input) {
+  var letterRegex = /^[A-Za-z]+$/;
+  return letterRegex.test(input);
 }
 
 function deleteShiftsTable(date,id_doctor){
@@ -702,6 +608,30 @@ function resetForm() {
   }
 }
 
+function resetErrors(){
+  const specializare_field = document.getElementById("doctor-specialization");
+  const cabinet_field = document.getElementById("doctor-cabinet");
+  const prenume_field = document.getElementById("doctor-first-name");
+  const nume_field = document.getElementById("doctor-last-name");
+  const phone_field = document.getElementById("doctor-phone");
+  const email_field = document.getElementById("doctor-email");
+  var specializationErrorMessage = document.getElementById("specialization-error-message");
+  var cabinetErrorMessage = document.getElementById("cabinet-error-message");
+  var doctorErrorMessage = document.getElementById("doctor-error-message");
+  var numeErrorMessage = document.getElementById("nume-error-message");
+  var prenumeErrorMessage = document.getElementById("prenume-error-message");
+  var phoneErrorMessage = document.getElementById("phone-error-message");
+  var emailErrorMessage = document.getElementById("email-error-message");
+
+  updateErrorMessageNoField(doctorErrorMessage, '', "E OK");
+  updateErrorMessage(specializare_field, specializationErrorMessage, "E Ok", '');
+  updateErrorMessage(cabinet_field, cabinetErrorMessage, "E Ok", '');
+  updateErrorMessage(nume_field, numeErrorMessage, "E OK", '');
+  updateErrorMessage(prenume_field, prenumeErrorMessage, "E OK", '');
+  updateErrorMessage(phone_field, phoneErrorMessage, "E OK", '');
+  updateErrorMessage(email_field, emailErrorMessage, "E OK", '');
+}
+
 function goBackFromEdit(){
   const deleteAllButton = document.getElementById("delete-all-doctors-button");
   deleteAllButton.style.display="block";
@@ -711,14 +641,113 @@ function goBackFromEdit(){
   doctorList.style.display = "block";
   document.getElementById("doctor-form").style.display = "none";
   document.getElementById("add-doctor-button").style.display = "flex";
+  resetErrors();
   resetForm();
+  resetDoctorForm();
   fetchDoctorsInfo();
   window.scrollTo(0,0);
 }
 
 function saveDoctor(id_doctor) {
+  const specializare_field = document.getElementById("doctor-specialization");
+  const cabinet_field = document.getElementById("doctor-cabinet");
+  const prenume_field = document.getElementById("doctor-first-name");
+  const nume_field = document.getElementById("doctor-last-name");
+  const phone_field = document.getElementById("doctor-phone");
+  const email_field = document.getElementById("doctor-email");
+  var specializationErrorMessage = document.getElementById("specialization-error-message");
+  var cabinetErrorMessage = document.getElementById("cabinet-error-message");
+  var doctorErrorMessage = document.getElementById("doctor-error-message");
+  var numeErrorMessage = document.getElementById("nume-error-message");
+  var prenumeErrorMessage = document.getElementById("prenume-error-message");
+  var phoneErrorMessage = document.getElementById("phone-error-message");
+  var emailErrorMessage = document.getElementById("email-error-message");
+
   const form = document.getElementById("add-doctor-form");
   const formData = new FormData(form);
+
+  var prenume = formData.get("first-name");
+  var nume = formData.get("last-name");
+  var specialization = formData.get("specialization");
+  var cabinet = formData.get("cabinet");
+  var phone = formData.get("phone");
+  var email = formData.get("email");
+
+  var errorMessages = [];
+  if (nume === "") {
+    updateErrorMessage(nume_field, numeErrorMessage, "", 'You should choose a last name.');
+    errorMessages.push('You should choose a last name.');
+  }
+  else if(nume.length < 4){
+    updateErrorMessage(nume_field, numeErrorMessage, "", 'The last name should have at least 4 characters.');
+    errorMessages.push('The last name should have at least 4 characters.');
+  }
+  else if(hasOnlyLetters(nume) === false){
+    updateErrorMessage(nume_field, numeErrorMessage, "", 'The last name should contain only letters.');
+    errorMessages.push('The last name should contain only letters.');
+  }
+  else{
+    updateErrorMessage(nume_field, numeErrorMessage, "E OK", '');
+  }
+  if (prenume === "") {
+    updateErrorMessage(prenume_field, prenumeErrorMessage, "", 'You should choose a first name.');
+    errorMessages.push('You should choose a first name.');
+  }
+  else if(hasOnlyLetters(prenume) === false){
+    updateErrorMessage(prenume_field, prenumeErrorMessage, "", 'The first name should contain only letters.');
+    errorMessages.push('The first name should contain only letters.');
+  }
+  else if(prenume.length < 4){
+    updateErrorMessage(prenume_field, prenumeErrorMessage, "", 'The first name should have at least 4 characters.');
+    errorMessages.push('The first name should have at least 4 characters.');
+  }
+  else{
+    updateErrorMessage(prenume_field, prenumeErrorMessage, "E OK", '');
+  }
+  if (specialization === "") {
+    updateErrorMessage(specializare_field, specializationErrorMessage, "", 'You should choose a specialization.');
+    errorMessages.push('You should choose a specialization.');
+  }
+  else{
+    updateErrorMessage(specializare_field, specializationErrorMessage, "E OK", '');
+  }
+
+  if (cabinet === "") {
+    updateErrorMessage(cabinet_field, cabinetErrorMessage, "", 'You should choose a cabinet.');
+    errorMessages.push('You should choose a cabinet.');
+  }
+  else{
+    updateErrorMessage(cabinet_field, cabinetErrorMessage, "E OK", '');
+  }
+
+  if(phone != ""){
+    if(isNumber(phone) === false){
+      updateErrorMessage(phone_field, phoneErrorMessage, "", 'The phone number should contain only digits.');
+      errorMessages.push('The phone number should contain only digits.');
+    }
+    else if(phone.length != 10){
+      updateErrorMessage(phone_field, phoneErrorMessage, "", 'The phone number should have exactly 10 digits.');
+      errorMessages.push('The phone number should have exactly 10 digits.');
+    }
+    else{
+      updateErrorMessage(phone_field, phoneErrorMessage, "E OK", '');
+    }
+  }
+  
+  if(email != ""){
+    if(isValidEmail(email) === false){
+      updateErrorMessage(email_field, emailErrorMessage, "", 'Invalid email.');
+      errorMessages.push('Invalid email.');
+    }
+    else{
+      updateErrorMessage(email_field, emailErrorMessage, "E OK", '');
+    }
+  }
+
+  if (errorMessages.length > 0) {
+    console.log(errorMessages);
+    return;
+  }
 
   formData.append("id",id_doctor);
   fetch("/update-doctor", {
@@ -728,14 +757,35 @@ function saveDoctor(id_doctor) {
     .then((response) => response.text())
     .then((result) => {
       console.log(result);
-      location.reload();
-      window.scrollTo(0,0);
+      if(result === "Doctor edited successfully!"){
+        resetForm();
+        resetDoctorForm();
+        location.reload();
+        window.scrollTo(0,0);
+      }
+      else if(result==="Doctor already exists."){
+        updateErrorMessageNoField(doctorErrorMessage, 'Doctor already exists.',"");
+        updateErrorMessage(specializare_field, specializationErrorMessage, "E Ok", '');
+        updateErrorMessage(cabinet_field, cabinetErrorMessage, "E Ok", '');
+        updateErrorMessage(nume_field, numeErrorMessage, "E OK", '');
+        updateErrorMessage(prenume_field, prenumeErrorMessage, "E OK", '');
+      }
+      
     })
     .catch((error) => {
       console.error("Error:", error);
     });
 }
 /**/
+
+function resetDoctorForm(){
+  document.getElementById("doctor-specialization").value = "";
+  document.getElementById("doctor-cabinet").value = "";
+  document.getElementById("doctor-first-name").value="";
+  document.getElementById("doctor-last-name").value="";
+  document.getElementById("doctor-phone").value="";
+  document.getElementById("doctor-email").value="";
+}
 
 function goBack() {
   const deleteAllButton = document.getElementById("delete-all-doctors-button");
@@ -746,7 +796,9 @@ function goBack() {
   doctorList.style.display = "block";
   document.getElementById("doctor-form").style.display = "none";
   document.getElementById("add-doctor-button").style.display = "flex";
-
+  resetErrors();
+  resetDoctorForm();
+  window.scrollTo(0,0);
   fetchDoctorsInfo();
 }
 
@@ -761,19 +813,151 @@ function goBackFromShift() {
   document.getElementById("add-doctor-button").style.display = "flex";
 }
 
-function addDoctor() {
-  var formular = document.getElementById("add-doctor-form");
+function updateErrorMessage(inputElement, errorMessageElement, value, errorMessage) {
+  if (!value) {
+    inputElement.classList.add("eroare-choose-field");
+    errorMessageElement.textContent = errorMessage;
+    errorMessageElement.style.textAlign = "left";
+    errorMessageElement.style.fontSize = "16px";
+    errorMessageElement.style.color = "rgb(226, 27, 60)";
+  } else {
+    errorMessageElement.textContent = "";
+    inputElement.classList.remove("eroare-choose-field");
+  }
+}
 
+function updateErrorMessageNoField(errorMessageElement, errorMessage, value) {
+  if (!value) {
+    errorMessageElement.textContent = errorMessage;
+    errorMessageElement.style.textAlign = "center";
+    errorMessageElement.style.fontSize = "20px";
+    errorMessageElement.style.color = "rgb(226, 27, 60)";
+  } else {
+    errorMessageElement.textContent = "";
+  }
+}
+
+function addDoctor() {
+  const specializare_field = document.getElementById("doctor-specialization");
+  const cabinet_field = document.getElementById("doctor-cabinet");
+  const prenume_field = document.getElementById("doctor-first-name");
+  const nume_field = document.getElementById("doctor-last-name");
+  const phone_field = document.getElementById("doctor-phone");
+  const email_field = document.getElementById("doctor-email");
+  var specializationErrorMessage = document.getElementById("specialization-error-message");
+  var cabinetErrorMessage = document.getElementById("cabinet-error-message");
+  var doctorErrorMessage = document.getElementById("doctor-error-message");
+  var numeErrorMessage = document.getElementById("nume-error-message");
+  var prenumeErrorMessage = document.getElementById("prenume-error-message");
+  var phoneErrorMessage = document.getElementById("phone-error-message");
+  var emailErrorMessage = document.getElementById("email-error-message");
+
+  var formular = document.getElementById("add-doctor-form");
   var formData = new FormData(formular);
+
+  var prenume = formData.get("first-name");
+  var nume = formData.get("last-name");
+  var specialization = formData.get("specialization");
+  var cabinet = formData.get("cabinet");
+  var phone = formData.get("phone");
+  var email = formData.get("email");
+
+  var errorMessages = [];
+  if (nume === "") {
+    updateErrorMessage(nume_field, numeErrorMessage, "", 'You should choose a last name.');
+    errorMessages.push('You should choose a last name.');
+  }
+  else if(nume.length < 4){
+    updateErrorMessage(nume_field, numeErrorMessage, "", 'The last name should have at least 4 characters.');
+    errorMessages.push('The last name should have at least 4 characters.');
+  }
+  else if(hasOnlyLetters(nume) === false){
+    updateErrorMessage(nume_field, numeErrorMessage, "", 'The last name should contain only letters.');
+    errorMessages.push('The last name should contain only letters.');
+  }
+  else{
+    updateErrorMessage(nume_field, numeErrorMessage, "E OK", '');
+  }
+  if (prenume === "") {
+    updateErrorMessage(prenume_field, prenumeErrorMessage, "", 'You should choose a first name.');
+    errorMessages.push('You should choose a first name.');
+  }
+  else if(hasOnlyLetters(prenume) === false){
+    updateErrorMessage(prenume_field, prenumeErrorMessage, "", 'The first name should contain only letters.');
+    errorMessages.push('The first name should contain only letters.');
+  }
+  else if(prenume.length < 4){
+    updateErrorMessage(prenume_field, prenumeErrorMessage, "", 'The first name should have at least 4 characters.');
+    errorMessages.push('The first name should have at least 4 characters.');
+  }
+  else{
+    updateErrorMessage(prenume_field, prenumeErrorMessage, "E OK", '');
+  }
+  if (specialization === "") {
+    updateErrorMessage(specializare_field, specializationErrorMessage, "", 'You should choose a specialization.');
+    errorMessages.push('You should choose a specialization.');
+  }
+  else{
+    updateErrorMessage(specializare_field, specializationErrorMessage, "E OK", '');
+  }
+
+  if (cabinet === "") {
+    updateErrorMessage(cabinet_field, cabinetErrorMessage, "", 'You should choose a cabinet.');
+    errorMessages.push('You should choose a cabinet.');
+  }
+  else{
+    updateErrorMessage(cabinet_field, cabinetErrorMessage, "E OK", '');
+  }
+
+  if(phone != ""){
+    if(isNumber(phone) === false){
+      updateErrorMessage(phone_field, phoneErrorMessage, "", 'The phone number should contain only digits.');
+      errorMessages.push('The phone number should contain only digits.');
+    }
+    else if(phone.length != 10){
+      updateErrorMessage(phone_field, phoneErrorMessage, "", 'The phone number should have exactly 10 digits.');
+      errorMessages.push('The phone number should have exactly 10 digits.');
+    }
+    else{
+      updateErrorMessage(phone_field, phoneErrorMessage, "E OK", '');
+    }
+  }
+  
+  if(email != ""){
+    if(isValidEmail(email) === false){
+      updateErrorMessage(email_field, emailErrorMessage, "", 'Invalid email.');
+      errorMessages.push('Invalid email.');
+    }
+    else{
+      updateErrorMessage(email_field, emailErrorMessage, "E OK", '');
+    }
+  }
+
+  if (errorMessages.length > 0) {
+    console.log(errorMessages);
+    return;
+  }
+
   fetch("/add-doctor", {
     method: "POST",
     body: formData,
   })
-    .then((response) => response.text())
-    .then((result) => {
-      console.log(result);
-      location.reload();
-      window.scrollTo(0,0);
+    .then((response) => {
+      if (response.ok) {
+        console.log("Doctor added successfully.");
+        resetDoctorForm();
+        location.reload();
+        window.scrollTo(0, 0);
+      } else {
+        console.log("Doctor already exists.");
+        updateErrorMessageNoField(doctorErrorMessage, 'Doctor already exists.',"");
+        updateErrorMessage(specializare_field, specializationErrorMessage, "E Ok", '');
+        updateErrorMessage(cabinet_field, cabinetErrorMessage, "E Ok", '');
+        updateErrorMessage(nume_field, numeErrorMessage, "E OK", '');
+        updateErrorMessage(prenume_field, prenumeErrorMessage, "E OK", '');
+        updateErrorMessage(phone_field, phoneErrorMessage, "E OK", '');
+        updateErrorMessage(email_field, emailErrorMessage, "E OK", '');
+      }
     })
     .catch((error) => {
       console.error(error);
@@ -940,6 +1124,115 @@ function getCabinetInfo(id_cabinet) {
 
 /*SHIFT*/
 var selected_dates = [];
+
+function showShiftsOfDoctor(id_doctor){
+  var doctorsTitle = document.getElementById("doctors-title");
+  var doctorList = document.getElementById("doctor-list");
+  var button = document.getElementById("add-doctor-button");
+  const deleteAllButton = document.getElementById("delete-all-doctors-button");
+  deleteAllButton.style.display="none";
+  doctorsTitle.style.display = "none";
+  doctorList.style.display = "none";
+  button.style.display = "none";
+
+  const shiftsList = document.getElementById("shifts-list");
+  shiftsList.innerHTML = "";
+  shiftsList.style.display = "block";
+
+getDoctorInfo(id_doctor)
+  .then((doctor) => {
+    const shiftsTitle = document.createElement("h1");
+    shiftsTitle.textContent = `Shifts of Dr. ${doctor.nume} ${doctor.prenume}`;
+    shiftsList.appendChild(shiftsTitle);
+
+    fetch(`/doctor-shifts/${id_doctor}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const shiftsByDate = {};
+        data.forEach((shift) => {
+          if (!shiftsByDate.hasOwnProperty(shift.zi)) {
+            shiftsByDate[shift.zi] = [];
+          }
+          shiftsByDate[shift.zi].push(shift);
+        });
+
+        Object.keys(shiftsByDate).forEach((date) => {
+          const shiftsTable = document.createElement("table");
+          shiftsTable.id = "shifts-table";
+
+          const tableCaption = document.createElement("caption");
+          tableCaption.textContent = formatDate(date);
+          shiftsTable.appendChild(tableCaption);
+
+          const tableHeader = document.createElement("thead");
+          tableHeader.innerHTML = `
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Start Hour</th>
+              <th>End Hour</th>
+              <th>Cabinet</th>
+              <th>Options</th>
+            </tr>
+          `;
+          shiftsTable.appendChild(tableHeader);
+
+          const tableBody = document.createElement("tbody");
+          shiftsByDate[date].forEach((shift) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${shift.id}</td>
+              <td>${shift.zi}</td>
+              <td>${shift.startHour}</td>
+              <td>${shift.endHour}</td>
+              <td id="cabinet-name-${shift.id_doctor}"></td>
+              <td>
+                <button class="edit-option" data-shift-id="${shift.id}">Edit</button>
+              </td>
+            `;
+            getCabinetInfo(shift.id_doctor)
+              .then((cabinet) => {
+                const cabinetNameCell = row.querySelector(`#cabinet-name-${shift.id_doctor}`);
+                cabinetNameCell.textContent = cabinet.denumire;
+              })
+              .catch((error) => console.log(error));
+
+            row.querySelector(".edit-option").addEventListener("click", (event) => {
+              const shiftId = event.target.getAttribute("data-shift-id");
+              editShift(shiftId);
+            });
+
+            tableBody.appendChild(row);
+          });
+
+          shiftsTable.appendChild(tableBody);
+          const deleteButton = document.createElement("button");
+            deleteButton.className = "delete-table-button";
+            deleteButton.textContent = "Delete All";
+            deleteButton.addEventListener("click", () => {
+              deleteShiftsTable(date,id_doctor);
+            });
+
+            shiftsList.appendChild(shiftsTable);
+            shiftsList.appendChild(deleteButton);
+        });
+
+        const backButtonDiv = document.createElement("div");
+        backButtonDiv.id = "back-button-shifts";
+        const backButton = document.createElement("button");
+        backButton.textContent = "Back";
+        backButton.addEventListener("click", function() {
+          shiftsList.style.display = "none";
+          goBack();
+        });
+        backButtonDiv.appendChild(backButton);
+
+        shiftsList.appendChild(backButtonDiv);
+      })
+      .catch((error) => console.log(error));
+  })
+  .catch((error) => console.log(error));
+}
 
 function showShiftForm(id_doctor) {
   const deleteAllButton = document.getElementById("delete-all-doctors-button");
@@ -1108,8 +1401,8 @@ function saveShift(shift){
     .then((response) => response.text())
     .then((result) => {
       console.log(result);
-
       showShiftsOfDoctor(shift.id_doctor);
+      window.scrollTo(0,0);
       resetShiftForm();
       formular.style.display = "none";
       shiftsTable.style.display = "block";
@@ -1124,6 +1417,7 @@ function goBackFromShiftEdit(){
   const shiftsList = document.getElementById("shifts-list");
   shiftsList.style.display="block";
   form.style.display="none";
+  window.scrollTo(0,0);
   resetShiftForm();
 }
 
@@ -1138,6 +1432,7 @@ function deleteShift(shift){
         console.log('Shift deleted successfully');
         showShiftsOfDoctor(shift.id_doctor);
         resetShiftForm();
+        window.scrollTo(0,0);
         formular.style.display = "none";
         shiftsTable.style.display = "block";
       } else {

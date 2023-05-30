@@ -4,6 +4,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jdbc.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -502,47 +503,6 @@ public class WebController {
         }
     }
 
-    @PostMapping("/add-doctor")
-    @ResponseBody
-    public String addDoctor(@RequestParam("first-name") String firstName,
-                            @RequestParam("last-name") String lastName,
-                            @RequestParam("specialization") Integer specialization,
-                            @RequestParam("cabinet") Integer cabinet,
-                            @RequestParam("phone") String phone,
-                            @RequestParam("email") String email,
-                            @RequestParam("image") MultipartFile image) {
-        try {
-            System.out.println("SPECIALIZARE: " + specialization + " CABINET: " + cabinet);
-            String fileName = image.getOriginalFilename();
-            if(!Objects.equals(fileName, "")){
-                Path p = Paths.get("./"+filesPath+"/doctor_pictures/"+fileName);
-                String filePath = p.toString();
-
-                image.transferTo(p);
-
-                var doctor = new DoctorDAO();
-                doctor.create(firstName,lastName,phone,email,filePath,cabinet);
-            }
-            else{
-                var doctor = new DoctorDAO();
-                doctor.create(firstName,lastName,phone,email,cabinet);
-            }
-            int id_doctor = DoctorDAO.findId(firstName,lastName,phone,email,cabinet);
-
-            var doctorSpecializare = new DoctoriSpecializariDAO();
-            doctorSpecializare.create(id_doctor, specialization);
-
-            return "Doctor added successfully!";
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Failed to upload the file.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Failed to add the doctor.";
-        }
-    }
-
-
     @DeleteMapping("/delete-doctor/{id}")
     @ResponseBody
     public String deleteDoctor(@PathVariable("id") Integer id_doctor) {
@@ -745,6 +705,58 @@ public class WebController {
         return new ArrayList<>();
     }
 
+    @PostMapping("/add-doctor")
+    @ResponseBody
+    public ResponseEntity<String> addDoctor(@RequestParam("first-name") String firstName,
+                                            @RequestParam("last-name") String lastName,
+                                            @RequestParam("specialization") Integer specialization,
+                                            @RequestParam("cabinet") Integer cabinet,
+                                            @RequestParam("phone") String phone,
+                                            @RequestParam("email") String email,
+                                            @RequestParam("image") MultipartFile image) {
+        try {
+            List<Integer> ids = DoctorDAO.findIdsList(firstName,lastName,phone,email);
+            for(Integer id_doctor : ids){
+                int id_specializare = SpecializareDAO.findIdSpecializareByDoctorId(id_doctor);
+                System.out.println("id specializare: " + id_specializare);
+                if(id_specializare == specialization){
+                    System.out.println("Ar trebui sa nu se adauge");
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body("Doctor already exists.");
+                }
+            }
+
+            String fileName = image.getOriginalFilename();
+            if(Objects.equals(phone, "")){
+                phone = "Not added";
+            }
+            if(Objects.equals(email, "")){
+                email = "Not added";
+            }
+            if(!Objects.equals(fileName, "")){
+                Path p = Paths.get("./"+filesPath+"/doctor_pictures/"+fileName);
+                String filePath = p.toString();
+                image.transferTo(p);
+                var doctor = new DoctorDAO();
+                doctor.create(firstName,lastName,phone,email,filePath,cabinet);
+            }
+            else{
+                var doctor = new DoctorDAO();
+                doctor.create(firstName,lastName,phone,email,cabinet);
+            }
+
+            int idDoctor = DoctorDAO.findMaxId();
+            var doctorSpecializare = new DoctoriSpecializariDAO();
+            doctorSpecializare.create(idDoctor, specialization);
+            return ResponseEntity.ok("Doctor added successfully!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload the file.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to add the doctor.");
+        }
+    }
+
     @PostMapping("/update-doctor")
     @ResponseBody
     public String updateDoctor(@RequestParam("id") Integer id,
@@ -756,13 +768,25 @@ public class WebController {
                             @RequestParam("email") String email,
                             @RequestParam("image") MultipartFile image) {
         try {
+            List<Integer> ids = DoctorDAO.findIdsList(firstName,lastName,phone,email);
+            for(Integer id_doctor : ids){
+                int id_specializare = SpecializareDAO.findIdSpecializareByDoctorId(id_doctor);
+                if(id_specializare == specialization){
+                    return "Doctor already exists.";
+                }
+            }
+
             String fileName = image.getOriginalFilename();
+            if(Objects.equals(phone, "")){
+                phone = "Not added";
+            }
+            if(Objects.equals(email, "")){
+                email = "Not added";
+            }
             if(!Objects.equals(fileName, "")){
                 Path p = Paths.get("./"+filesPath+"/doctor_pictures/"+fileName);
                 String filePath = p.toString();
-
                 image.transferTo(p);
-
                 var doctor = new DoctorDAO();
                 doctor.update(id,firstName,lastName,phone,email,filePath,cabinet);
             }
@@ -773,7 +797,6 @@ public class WebController {
 
             var doctorSpecializare = new DoctoriSpecializariDAO();
             doctorSpecializare.update(id, specialization);
-
             return "Doctor edited successfully!";
         } catch (IOException e) {
             e.printStackTrace();

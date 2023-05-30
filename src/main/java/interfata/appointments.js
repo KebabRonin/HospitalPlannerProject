@@ -235,31 +235,31 @@ fetchAppointments();
 
 /*EDIT APPOINTMENTS*/
 var selected_dates = [];
-var cal_appointments = new calendar(document.getElementById('calendar-appointments'), {
+var cal = new calendar(document.getElementById('calendar'), {
   selectDate: function (date) {
     if (!!selected_dates.find(d => d.getTime() === date.getTime())) {
-      cal_appointments.unselectDate(date);
+      cal.unselectDate(date);
       selected_dates = selected_dates.filter(d => d.getTime() !== date.getTime());
     } else {
-      cal_appointments.selectDate(date);
+      cal.selectDate(date);
       selected_dates.push(date);
     }
     console.log(selected_dates);
   },
 	onDayClick: function (date, evts) {
 		if (!!selected_dates.find(d => d.getTime() === date.getTime())) {
-			cal_appointments.unselectDate(date);
+			cal.unselectDate(date);
 			selected_dates = selected_dates.filter(d => d.getTime() !== date.getTime());
 		} else {
       console.log(date);
-			cal_appointments.selectDate(date);
+			cal.selectDate(date);
 			selected_dates.push(date);
 		}
 		console.log(selected_dates);
 	},
 	onMonthChanged: function () {
 		for (let i = 0; i < selected_dates.length; i++) {
-			cal_appointments.selectDate(selected_dates[i]);
+			cal.selectDate(selected_dates[i]);
 		}
 	}
 });
@@ -364,7 +364,7 @@ function editAppointment(appointmentId) {
           var month = (parseInt(parts[1], 10) - 1);
           var year = parseInt(parts[0]);
           var data = new Date(year, month, day);
-          cal_appointments.selectDate(data);
+          cal.selectDate(data);
           selected_dates.push(data);
 
           fetch(`/doctors-info/${appointment.id_doctor}`)
@@ -395,7 +395,7 @@ function goBackFromAppointmentsEdit(){
   document.getElementById("hour").value = "";
   document.getElementById("doctor").value = "";
   document.getElementById("specializare").value = "";
-  cal_appointments.unselectDate(selected_dates[0]);
+  cal.unselectDate(selected_dates[0]);
   selected_dates = [];
   window.scrollTo(0, 0);
 }

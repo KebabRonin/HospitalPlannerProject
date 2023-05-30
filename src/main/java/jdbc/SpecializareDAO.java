@@ -39,6 +39,21 @@ public class SpecializareDAO {
         }
     }
 
+    public static int findIdSpecializareByDoctorId(int id_doctor) throws SQLException{
+        try (Connection con = Database.getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select id_specializare from doctori_specializari where id_doctor='" + id_doctor + "'")) {
+            while (rs.next()) {
+                int id_specializare = rs.getInt("id_specializare");
+
+                return id_specializare;
+
+            }
+        }
+        return 0;
+    }
+
     public static Specializare findById(int id_specializare) throws SQLException{
         try (Connection con = Database.getConnection();
              Statement stmt = con.createStatement();

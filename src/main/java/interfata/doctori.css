@@ -371,3 +371,8 @@ caption {
   border-radius: 5px;
   cursor: pointer;
 }
+
+.eroare-choose-field {
+  border: 1px solid rgb(226, 27, 60);
+  background-color: rgb(255, 245, 247);
+}
