@@ -135,7 +135,7 @@ DECLARE
 BEGIN
 	FOR i IN (select * from information_schema.tables where table_schema = 'public') loop
 		IF (select COUNT(*) from information_schema.columns where table_name = i.table_name AND column_name = 'id') > 0 THEN
-			EXECUTE FORMAT('CREATE OR REPLACE TRIGGER %s_maxId before insert or update on %s for each row execute procedure maxId()', i.table_name, i.table_name);
+			EXECUTE FORMAT('CREATE OR REPLACE TRIGGER %s_maxId before insert on %s for each row execute procedure maxId()', i.table_name, i.table_name);
 		END IF;
 	end loop;
 END;
@@ -207,6 +207,33 @@ $$;
 
 
 ALTER FUNCTION public.doctor_is_working() OWNER TO postgres;
+
+--
+-- TOC entry 242 (class 1255 OID 26429)
+-- Name: public.doctor_is_working_update(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.doctor_is_working_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+declare
+begin
+	IF NOT EXISTS (SELECT * from program_doctori where id_doctor = NEW.id_doctor and NEW.data_programare = zi and NEW.ora_programare between timp_inceput and timp_final) THEN
+		RAISE EXCEPTION 'Doctor doesn''t work at that time';
+	END IF;
+	IF EXISTS (SELECT * from programari where id_pacient = NEW.id_pacient and NEW.data_programare = data_programare and NEW.ora_programare = ora_programare AND id <> OLD.id) THEN
+		RAISE EXCEPTION 'Pacient already has appointment at that time';
+	END IF;
+	IF EXISTS (SELECT * from programari where id_doctor = NEW.id_doctor and NEW.data_programare = data_programare and NEW.ora_programare = ora_programare AND id <> OLD.id) THEN
+		RAISE EXCEPTION 'Doctor has other appointment at that time';
+	END IF;
+	return new;
+end;
+$$;
+
+
+ALTER FUNCTION public.doctor_is_working_update() OWNER TO postgres;
+
 
 --
 -- TOC entry 236 (class 1255 OID 26430)
@@ -639,7 +666,7 @@ CREATE TRIGGER a_update_trg_program_doctori_normalize_hours BEFORE UPDATE ON pub
 -- Name: cabinete cabinete_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
-CREATE TRIGGER cabinete_maxid BEFORE INSERT OR UPDATE ON public.cabinete FOR EACH ROW EXECUTE FUNCTION public.maxid();
+CREATE TRIGGER cabinete_maxid BEFORE INSERT ON public.cabinete FOR EACH ROW EXECUTE FUNCTION public.maxid();
 
 
 --
@@ -647,7 +674,7 @@ CREATE TRIGGER cabinete_maxid BEFORE INSERT OR UPDATE ON public.cabinete FOR EAC
 -- Name: doctori doctori_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
-CREATE TRIGGER doctori_maxid BEFORE INSERT OR UPDATE ON public.doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
+CREATE TRIGGER doctori_maxid BEFORE INSERT ON public.doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
 
 
 --
@@ -655,7 +682,7 @@ CREATE TRIGGER doctori_maxid BEFORE INSERT OR UPDATE ON public.doctori FOR EACH 
 -- Name: pacienti pacienti_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
-CREATE TRIGGER pacienti_maxid BEFORE INSERT OR UPDATE ON public.pacienti FOR EACH ROW EXECUTE FUNCTION public.maxid();
+CREATE TRIGGER pacienti_maxid BEFORE INSERT ON public.pacienti FOR EACH ROW EXECUTE FUNCTION public.maxid();
 
 
 --
@@ -663,7 +690,7 @@ CREATE TRIGGER pacienti_maxid BEFORE INSERT OR UPDATE ON public.pacienti FOR EAC
 -- Name: program_doctori program_doctori_maxid; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
-CREATE TRIGGER program_doctori_maxid BEFORE INSERT OR UPDATE ON public.program_doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
+CREATE TRIGGER program_doctori_maxid BEFORE INSERT ON public.program_doctori FOR EACH ROW EXECUTE FUNCTION public.maxid();
 
 
 --
@@ -671,8 +698,9 @@ CREATE TRIGGER program_doctori_maxid BEFORE INSERT OR UPDATE ON public.program_d
 -- Name: programari programari_doctor_is_working; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
-CREATE TRIGGER programari_doctor_is_working BEFORE INSERT OR UPDATE ON public.programari FOR EACH ROW EXECUTE FUNCTION public.doctor_is_working();
+CREATE TRIGGER programari_doctor_is_working BEFORE INSERT ON public.programari FOR EACH ROW EXECUTE FUNCTION public.doctor_is_working();
 
+CREATE TRIGGER programari_doctor_is_working_update BEFORE UPDATE ON public.programari FOR EACH ROW EXECUTE FUNCTION public.doctor_is_working_update();
 
 --
 -- TOC entry 3237 (class 2620 OID 26445)
@@ -696,7 +724,7 @@ CREATE TRIGGER specializari_maxid BEFORE INSERT OR UPDATE ON public.specializari
 --
 
 ALTER TABLE ONLY public.doctori_specializari
-    ADD CONSTRAINT doctori_specializari_id_doctor_fkey FOREIGN KEY (id_doctor) REFERENCES public.doctori(id) ON DELETE CASCADE;
+    ADD CONSTRAINT doctori_specializari_id_doctor_fkey FOREIGN KEY (id_doctor) REFERENCES public.doctori(id) ON DELETE CASCADE  on update cascade;
 
 
 --
@@ -705,7 +733,7 @@ ALTER TABLE ONLY public.doctori_specializari
 --
 
 ALTER TABLE ONLY public.doctori_specializari
-    ADD CONSTRAINT doctori_specializari_id_specializare_fkey FOREIGN KEY (id_specializare) REFERENCES public.specializari(id) ON DELETE CASCADE;
+    ADD CONSTRAINT doctori_specializari_id_specializare_fkey FOREIGN KEY (id_specializare) REFERENCES public.specializari(id) ON DELETE CASCADE  on update cascade;
 
 
 --
@@ -714,7 +742,7 @@ ALTER TABLE ONLY public.doctori_specializari
 --
 
 ALTER TABLE ONLY public.program_doctori
-    ADD CONSTRAINT program_doctori_id_doctor_fkey FOREIGN KEY (id_doctor) REFERENCES public.doctori(id) ON DELETE CASCADE;
+    ADD CONSTRAINT program_doctori_id_doctor_fkey FOREIGN KEY (id_doctor) REFERENCES public.doctori(id) ON DELETE CASCADE  on update cascade;
 
 
 --
@@ -723,7 +751,7 @@ ALTER TABLE ONLY public.program_doctori
 --
 
 ALTER TABLE ONLY public.programari
-    ADD CONSTRAINT programari_id_doctor_fkey FOREIGN KEY (id_doctor) REFERENCES public.doctori(id) ON DELETE CASCADE;
+    ADD CONSTRAINT programari_id_doctor_fkey FOREIGN KEY (id_doctor) REFERENCES public.doctori(id) ON DELETE CASCADE  on update cascade;
 
 
 --
@@ -732,7 +760,7 @@ ALTER TABLE ONLY public.programari
 --
 
 ALTER TABLE ONLY public.programari
-    ADD CONSTRAINT programari_id_pacient_fkey FOREIGN KEY (id_pacient) REFERENCES public.pacienti(id) ON DELETE CASCADE;
+    ADD CONSTRAINT programari_id_pacient_fkey FOREIGN KEY (id_pacient) REFERENCES public.pacienti(id) ON DELETE CASCADE  on update cascade;
 
 
 -- Completed on 2023-05-30 20:47:34
