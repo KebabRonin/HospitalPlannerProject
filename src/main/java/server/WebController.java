@@ -37,8 +37,13 @@ public class WebController {
     private static String filesPath = "src/main/java/interfata/";
     @GetMapping("/")
     @ResponseBody
-    public byte[] index() {
-        return WebController.load_file(filesPath + "landing.html");
+    public byte[] index(@CookieValue("userId") Integer userId) {
+        if(userId == null || connectedUsers.get(userId) == null) {
+            return WebController.load_file(filesPath + "landing.html");
+        }
+        else {
+            return WebController.load_file(filesPath + "admin.html");
+        }
     }
 
     @GetMapping("/{*file_path}")
@@ -80,6 +85,13 @@ public class WebController {
         return specializare.getAllSpecializari();
     }
 
+    @GetMapping(value = "/specializari-info/existing-doctors", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Specializare> getSpecializariInfoExisting() throws SQLException {
+        var specializare = new SpecializareDAO();
+        return specializare.getAllExistingSpecializari();
+    }
+
     @GetMapping(value = "/specializari-info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Specializare getSpecializareInfo(@PathVariable("id") int id) throws SQLException {
@@ -97,9 +109,15 @@ public class WebController {
 
     @GetMapping(value = "/doctors-info", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public List<Doctor> getDoctorsInfo() throws SQLException {
+    public List<Doctor> getDoctorsInfo(@RequestParam(value = "specialisation", required = false) Integer id_specialisation) throws SQLException {
         var doctor = new DoctorDAO();
-        var doctors = doctor.findAll();
+        List<Doctor> doctors;
+        if(id_specialisation != null) {
+            doctors = doctor.findBySpecialisation(id_specialisation);
+        }
+        else {
+            doctors = doctor.findAll();
+        }
         return doctors;
     }
 
@@ -139,7 +157,7 @@ public class WebController {
     @ResponseBody
     public String deleteShiftsOnDate(@PathVariable("date") String date) {
         try {
-            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            SimpleDateFormat d = new SimpleDateFormat("yyyy-M-dd");
             ProgramDoctorDAO.delete(new java.sql.Date(d.parse(date).getTime()));
             return "Shifts deleted successfully!";
         } catch (SQLException | ParseException e) {
@@ -153,7 +171,7 @@ public class WebController {
     public String deleteShiftsOnDateForDoctor(@PathVariable("date") String date,
                                               @RequestParam("doctor") Integer doctorId) {
         try {
-            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
+            SimpleDateFormat d = new SimpleDateFormat("yyyy-M-dd");
             ProgramDoctorDAO.delete(new java.sql.Date(d.parse(date).getTime()),doctorId);
             return "Shifts deleted successfully!";
         } catch (SQLException | ParseException e) {
@@ -607,6 +625,119 @@ public class WebController {
                     }
 
                     return available_days;
+                }
+
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    @GetMapping(value="/program-info/days", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<Integer> getProgram(@RequestParam("month") int month,
+                                    @RequestParam("year") int year,
+                                    @RequestParam(value = "doctor", required = false) Integer doctor,
+                                    @RequestParam(value = "specialisation", required = false) Integer specialisation) throws Exception {
+        List<Doctor> doctorList = null;
+        DoctorDAO doctorDAO = new DoctorDAO();
+        if (doctor != null) {
+            Doctor d = doctorDAO.findById(doctor);
+            if (d != null) {
+                doctorList = new LinkedList<>();
+                doctorList.add(d);
+            }
+            else {
+                throw new Exception("Doctor does not exist");
+            }
+        }
+        else if (specialisation != null) {
+            doctorList = doctorDAO.findBySpecialisation(specialisation);
+        }
+        else {
+            throw new Exception("No specialisation selected");
+        }
+
+        if(doctorList != null && doctorList.size() > 0) {//any doctor
+            try(Connection con = Database.getConnection()) {
+                StringBuilder sb = new StringBuilder("select distinct to_char(zi,'DD')::integer from program_doctori where to_char(zi,'MM')::integer = (?) and to_char(zi,'YYYY')::integer = (?) and id_doctor in (");
+                sb.append("?,".repeat(doctorList.size()));
+                sb.deleteCharAt(sb.length()-1);
+                sb.append(")");
+                try (PreparedStatement pstmt = con.prepareStatement(sb.toString())) {
+                    pstmt.setInt(1, month);
+                    pstmt.setInt(2, year);
+                    for (int index = 0; index < doctorList.size(); ++index) {
+                        pstmt.setInt(3 + index, doctorList.get(index).getId());
+                    }
+                    ResultSet rs = pstmt.executeQuery();
+                    List<Integer> available_days = new ArrayList<>(32);
+                    while(rs.next()) {
+                        available_days.add(rs.getInt(1));
+                    }
+
+                    System.out.println("Available dates:"+available_days);
+                    return available_days;
+                }
+
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    @GetMapping(value="/program-info/hours", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<String> getHourProgram(@RequestParam("day") int day,
+                                       @RequestParam("month") int month,
+                                       @RequestParam("year") int year,
+                                       @RequestParam(value = "doctor", required = false) Integer doctor,
+                                       @RequestParam(value = "specialisation", required = false) Integer specialisation) throws Exception {
+        System.out.println("cevap" + year + month + day);
+        List<Doctor> doctorList = null;
+        DoctorDAO doctorDAO = new DoctorDAO();
+        if (doctor != null) {
+            Doctor d = doctorDAO.findById(doctor);
+            if (d != null) {
+                doctorList = new LinkedList<>();
+                doctorList.add(d);
+            }
+            else {
+                throw new Exception("Doctor does not exist");
+            }
+        }
+        else if (specialisation != null) {
+            doctorList = doctorDAO.findBySpecialisation(specialisation);
+        }
+        else {
+            throw new Exception("No specialisation selected");
+        }
+
+        if(doctorList != null && doctorList.size() > 0) {//any doctor
+            try(Connection con = Database.getConnection()) {
+                //StringBuilder sb = new StringBuilder("select distinct to_char(zi,'DD')::integer from program_doctori where to_char(zi,'MM')::integer = (?) and to_char(zi,'YYYY')::integer = (?) and id_doctor in (");
+                try (PreparedStatement pstmt = con.prepareStatement("select get_free_hours_of_doctor_on_date((?), '"+day+"-"+month+"-"+year+"'::DATE)")) {
+                    List<String> available_hours = new ArrayList<>(50);
+
+                    for(Doctor i : doctorList) {
+                        pstmt.setInt(1,i.getId());
+                        ResultSet rs = pstmt.executeQuery();
+                        if(rs.next()) {
+                            String result = rs.getString(1);
+                            System.out.println(result);
+                            available_hours.addAll(Arrays.stream(result.split(",")).filter((h) -> !available_hours.contains(h)).toList());
+                        }
+
+                    }
+                    available_hours.sort((a,b) -> {
+                        if (Integer.parseInt(a.split(":")[0]) > Integer.parseInt(b.split(":")[0])) {
+                            return 1;
+                        } else if(Integer.parseInt(a.split(":")[0]) == Integer.parseInt(b.split(":")[0])) {
+                            return a.split(":")[1].charAt(0) - (b.split(":")[1].charAt(0));
+                        } else{
+                            return -1;
+                        }
+                    });
+                    System.out.println("hours:" + available_hours);
+                    return available_hours;
                 }
 
             }
