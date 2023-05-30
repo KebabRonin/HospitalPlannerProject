@@ -77,4 +77,19 @@ public class SpecializareDAO {
 //            return rs.next() ? new Specializare(rs.getInt(1), rs.getString(2)) : null;
 //        }
 //    }
+
+    public List<Specializare> getAllExistingSpecializari() throws SQLException {
+        List<Specializare> specializari = new ArrayList<>();
+        try (Connection con = Database.getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select distinct s.id,s.denumire from doctori_specializari d join specializari s on d.id_specializare = s.id")) {
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String denumire = rs.getString("denumire");
+                specializari.add(new Specializare(id, denumire));
+            }
+            return specializari;
+        }
+    }
 }
