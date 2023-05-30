@@ -204,7 +204,7 @@ async function load_hour_form() {
 
 	for(let i in selected_dates) {
 		console.log(selected_dates[i]);
-		await fetch("/program-info/hours?day="+selected_dates[i].getDate()+"&month="+cal.getCurrentMonth().month+"&year="+cal.year+qstring)
+		await fetch("/program-info/hours?userId="+document.cookie.valueOf("userId").split("=")[1]+"&day="+selected_dates[i].getDate()+"&month="+cal.getCurrentMonth().month+"&year="+cal.year+qstring)
 		.then((response) => response.json())
 		.then((data) => {
 			console.log(data);
@@ -279,7 +279,7 @@ function submit_form() {
 			response.json();
 		})
 		.then((data) => {
-			window.location.href = '/your_appointments.html';
+			window.location.href = '/your_appointments';
 		})
 		.catch((error) => {
 			console.log(error);

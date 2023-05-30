@@ -161,7 +161,7 @@ function deleteShiftsTable(date,id_doctor){
     .then(response => {
       if (response.ok) {
         console.log('All shifts deleted successfully for this day for the doctor');
-        location.reload();
+        showShiftsOfDoctor(id_doctor);
         window.scrollTo(0, 0);
       } else {
         console.error('Error deleting all shifts for this day for the doctor');
@@ -1284,10 +1284,13 @@ function addShift(id_doctor){
       button.style.display = "flex";
       doctorListDiv.style.display = "flex";
       doctorsTitle.style.display = "block";
+      const deleteAllButton = document.getElementById("delete-all-doctors-button");
+      deleteAllButton.style.display="block";
     })
     .catch((error) => {
       console.error(error);
     });
+    
 }
 
 function editShift(id_shift){

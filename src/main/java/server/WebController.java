@@ -38,7 +38,7 @@ public class WebController {
     private static String filesPath = "src/main/java/interfata/";
     @GetMapping("/")
     @ResponseBody
-    public byte[] index(@CookieValue("userId") Integer userId) {
+    public byte[] index(@CookieValue(value="userId", required=false) Integer userId) {
         if(userId == null || connectedUsers.get(userId) == null) {
             return WebController.load_file(filesPath + "landing.html");
         }
@@ -59,6 +59,39 @@ public class WebController {
     public byte[] get_resource(@PathVariable(value="file_path") String filePath) {
         System.out.println(filePath);
         return WebController.load_file(filesPath + filePath);
+    }
+
+    @GetMapping("/admin")
+    @ResponseBody
+    public byte[] profile(@CookieValue(value="userId", required = false) Integer userId) {
+        if(userId == null || connectedUsers.get(userId) == null) {
+            return WebController.load_file(filesPath + "landing.html");
+        }
+        else {
+            return WebController.load_file(filesPath + "admin.html");
+        }
+    }
+
+    @GetMapping("/your_appointments")
+    @ResponseBody
+    public byte[] your_appointments(@CookieValue(value="userId", required = false) Integer userId) {
+        if(userId == null || connectedUsers.get(userId) == null) {
+            return WebController.load_file(filesPath + "landing.html");
+        }
+        else {
+            return WebController.load_file(filesPath + "your_appointments.html");
+        }
+    }
+
+    @GetMapping("/make_appointment")
+    @ResponseBody
+    public byte[] make_appointment(@CookieValue(value="userId", required = false) Integer userId) {
+        if(userId == null || connectedUsers.get(userId) == null) {
+            return WebController.load_file(filesPath + "landing.html");
+        }
+        else {
+            return WebController.load_file(filesPath + "make_appointment.html");
+        }
     }
 
     public static byte[] load_file(String filePath) {
@@ -158,7 +191,7 @@ public class WebController {
     @ResponseBody
     public String deleteShiftsOnDate(@PathVariable("date") String date) {
         try {
-            SimpleDateFormat d = new SimpleDateFormat("yyyy-M-dd");
+            SimpleDateFormat d = new SimpleDateFormat("dd-M-yyyy");
             ProgramDoctorDAO.delete(new java.sql.Date(d.parse(date).getTime()));
             return "Shifts deleted successfully!";
         } catch (SQLException | ParseException e) {
@@ -646,12 +679,12 @@ public class WebController {
 
     @GetMapping(value="/program-info/hours", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public List<String> getHourProgram(@RequestParam("day") int day,
+    public List<String> getHourProgram(@RequestParam("userId") int userId,
+                                       @RequestParam("day") int day,
                                        @RequestParam("month") int month,
                                        @RequestParam("year") int year,
                                        @RequestParam(value = "doctor", required = false) Integer doctor,
                                        @RequestParam(value = "specialisation", required = false) Integer specialisation) throws Exception {
-        System.out.println("cevap" + year + month + day);
         List<Doctor> doctorList = null;
         DoctorDAO doctorDAO = new DoctorDAO();
         if (doctor != null) {
@@ -674,11 +707,12 @@ public class WebController {
         if(doctorList != null && doctorList.size() > 0) {//any doctor
             try(Connection con = Database.getConnection()) {
                 //StringBuilder sb = new StringBuilder("select distinct to_char(zi,'DD')::integer from program_doctori where to_char(zi,'MM')::integer = (?) and to_char(zi,'YYYY')::integer = (?) and id_doctor in (");
-                try (PreparedStatement pstmt = con.prepareStatement("select get_free_hours_of_doctor_on_date((?), '"+day+"-"+month+"-"+year+"'::DATE)")) {
+                try (PreparedStatement pstmt = con.prepareStatement("select get_free_hours_of_pacient_of_doctor_on_date((?),(?), '"+day+"-"+month+"-"+year+"'::DATE)")) {
                     List<String> available_hours = new ArrayList<>(50);
 
                     for(Doctor i : doctorList) {
-                        pstmt.setInt(1,i.getId());
+                        pstmt.setInt(1,userId);
+                        pstmt.setInt(2,i.getId());
                         ResultSet rs = pstmt.executeQuery();
                         if(rs.next()) {
                             String result = rs.getString(1);
@@ -823,15 +857,49 @@ public class WebController {
 
     @PostMapping(value = "/appointments/{userId}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public void makeAppointment(@PathVariable("userId") int userId, @RequestBody RequestProgramare request) throws ParseException, SQLException {
+    public void makeAppointment(@PathVariable("userId") int userId, @RequestBody RequestProgramare request) throws Exception {
         System.out.println(request);
         ProgramareDAO prog = new ProgramareDAO();
 
-        if(request.getHour() == null) {
-            request.setHour("01:01");
+        List<Doctor> doctorList = null;
+        DoctorDAO doctorDAO = new DoctorDAO();
+
+        if(request.getSpecializare() <= 0 && request.getDoctor() <= 0) {
+            throw new Exception("Not enough data");
+        }
+        if(request.getSpecializare() > 0 && request.getDoctor() > 0 &&
+                DoctorDAO.findById(request.getDoctor()).getSpecializari().stream().noneMatch((x) -> x.getId() == request.getSpecializare())) {
+            throw new Exception("Specialisation conflict with doctor");
+        }
+        if (request.getDoctor() > 0) {
+            Doctor d = doctorDAO.findById(request.getDoctor());
+            if (d != null) {
+                doctorList = new LinkedList<>();
+                doctorList.add(d);
+            }
+            else {
+                throw new Exception("Doctor does not exist");
+            }
+        }
+        else if (request.getSpecializare() > 0) {
+            doctorList = doctorDAO.findBySpecialisation(request.getSpecializare());
+        }
+        else {
+            throw new Exception("No specialisation selected");
         }
 
-        prog.create(userId, request.getDoctor(), request.getDates().get(0), request.getHour());
+        if(request.getSpecializare() > 0 && request.getDoctor() <= 0) {
+            for (Doctor i : new DoctorDAO().findBySpecialisation(request.getSpecializare())) {
+                try {
+                    prog.create(userId, i.getId(), request.getDates().get(0), request.getHour());
+                } catch(SQLException e) {
+                    System.out.println(e);
+                }
+            }
+        }
+        else {
+            prog.create(userId, request.getDoctor(), request.getDates().get(0), request.getHour());
+        }
     }
 
     @GetMapping(value = "/appointment-info/{appointmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
