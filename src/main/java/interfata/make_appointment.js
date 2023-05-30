@@ -2,12 +2,18 @@ var selected_dates = [];
 var selected_doctor = -1;
 var selected_hour = -1;
 var selected_specializare = -1;
+var cal;
 
 
+var specializareForm = document.getElementById("specializare-form");
+var calendarForm = document.getElementById("calendar-form");
+var doctorForm = document.getElementById("doctor-form");
+var hourForm = document.getElementById("hour-form");
+
+var specializareSelect = document.getElementById("specializare");
+var calendarSelect = document.getElementById("calendar");
 var doctorSelect = document.getElementById("doctor");
-var specSelect = document.getElementById("specializare");
 var hourSelect = document.getElementById("hour");
-
 
 function make_option(root, value, text) {
 	var concrete_option = document.createElement("option");
@@ -16,23 +22,78 @@ function make_option(root, value, text) {
 	root.appendChild(concrete_option);
 	return concrete_option;
 }
-var update_funcs = {
-	"doctor": function () {
+
+function load_specializare_form() {
+	calendarForm.style["display"] = "none";
+	doctorForm.style["display"] = "none";
+	hourForm.style["display"] = "none";
+
+	var prevoius_selection = specializareSelect.value;
+	specializareSelect.textContent = '';
+
+	fetch("/specializari-info/existing-doctors")
+		.then((response) => response.json())
+		.then((data) => {
+
+			if (data.length > 0) {
+				make_option(specializareSelect, -1, "No specialisation selected");
+				let index = 0;
+				data.forEach((specializare) => {
+					let current = make_option(specializareSelect, specializare.id, specializare.denumire);
+					if(current.value == prevoius_selection) {
+						current.selected = index;
+					}
+					index++;
+				}
+				);
+			} else {
+				make_option(specializareSelect, -1, "No specialisations available");
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+			specSelect.textContent = '';
+			make_option(specializareSelect, -1, "No specialisations available");
+	});
+
+	specializareForm.style["display"] = "block";
+	console.log('Ran ' + 'specializare')
+}
+
+load_specializare_form();
+
+function load_doctor_form() {
+
+	if(specializareSelect.value == -1) {
+		alert("Must choose specialisation!");
+		return;
+	}
+
+	specializareForm.style["display"] = "none";
+	calendarForm.style["display"] = "none";
+	hourForm.style["display"] = "none";
+
 	var prevoius_selection = doctorSelect.value;
 	doctorSelect.textContent = '';
 
+	var qstring;
+	if(specializareSelect.value > 0) {
+		qstring = '?specialisation='+specializareSelect.value;
+	}
+	else {
+		qstring = '';
+	}
 
-	fetch("/doctors-info")
+	fetch("/doctors-info" + qstring)
 		.then((response) => response.json())
 		.then((data) => {
 			if (data.length > 0) {
 				if(data.length > 1) {
-					make_option(doctorSelect, -10, "Any doctor");
+					make_option(doctorSelect, -1, "Any doctor");
 				}
 
 				let index = 0;
 				data.forEach((doctor) => {
-					//de ce merge??
 					let current = make_option(doctorSelect, doctor.id, "Dr. "+doctor.nume+" "+doctor.prenume);
 					if(current.value == prevoius_selection) {
 						current.selected = true;
@@ -47,212 +108,132 @@ var update_funcs = {
 			console.log(error);
 			doctorSelect.innerHTML = '';
 			make_option(doctorSelect, -1, "No doctors available");
-		});
+	});
+	
+	doctorSelect.selectedIndex = 0
+	console.log(doctorSelect.selectedIndex)
 		
-		// for(let i = 0; i < doctorSelect.options.length; i++) {
-		// 	if (doctorSelect.options[i].value == prevoius_selection) {
-		// 		doctorSelect.options.selectedIndex = i;
-		// 		doctorSelect.options[i].selected = true;
-		// 		break;
-		// 	}
-		// }
-		doctorSelect.selectedIndex = 0
-		console.log(doctorSelect.selectedIndex)
-		console.log('Ran ' + 'doctor')
-	},
-	"specializare": function () {
-	var prevoius_selection = specSelect.value;
-	specSelect.textContent = '';
+	doctorForm.style["display"] = "block";
+	console.log('Ran ' + 'doctor')
+}
 
-	fetch("/specializari-info")
-		.then((response) => response.json())
-		.then((data) => {
+function load_calendar_form() {
+	specializareForm.style["display"] = "none";
+	doctorForm.style["display"] = "none";
+	hourForm.style["display"] = "none";
 
-			if (data.length > 0) {
-				if(data.length > 1) {
-					make_option(specSelect, -10, "Any specialisation");
-				}
+	selected_dates = [];
+	calendarSelect.textContent = '';
 
-				let index = 0;
-				data.forEach((specializare) => {
-					//de ce merge??
-					let current = make_option(specSelect, specializare.id, specializare.denumire);
-					if(current.value == prevoius_selection) {
-						current.selected = index;
-					}
-					index++;
-				}
-				);
+	cal = new calendar(document.getElementById('calendar'), {
+		onDayClick: function (date, evts) {
+			if (selected_dates.find(d => d.getTime() === date.getTime())) {
+				cal.unselectDate(date);
+				selected_dates = selected_dates.filter(d => d.getTime() !== date.getTime());
 			} else {
-				make_option(specSelect, -1, "No specialisations available");
+				cal.selectDate(date);
+				selected_dates.push(date);
 			}
-		})
-		.catch((error) => {
-			console.log(error);
-			specSelect.innerHTML = '';
-			make_option(specSelect, -1, "No specialisations available");
-		});
-		specSelect.selectedIndex = 0;
-		console.log('Ran ' + 'specializare')
-	},
-	"dates": function () {
+			console.log(selected_dates);
+		},
+		onMonthChanged: function () {
+			loadOfMonth(cal);
+			for (let i in selected_dates) {
+				cal.selectDate(selected_dates[i]);
+			}
+			cal.drawCalendar();
+		}
+	});
 
-		console.log('Ran ' + 'dates')
-	},
-	"hour": function () {
-	var prevoius_selection = hourSelect.value;
+	loadOfMonth(cal);
+
+	calendarForm.style["display"] = "block";
+	console.log('Ran ' + 'calendar')
+}
+
+async function loadOfMonth(cal) {
+	var qstring = '';
+	if(doctorSelect.value != -1) {
+		qstring = '&doctor='+doctorSelect.value;
+	}
+	else if(specializareSelect.value != -1) {
+		qstring = qstring.concat('&specialisation='+specializareSelect.value);
+	}
+
+	await fetch("/program-info/days?month="+cal.getCurrentMonth().month+"&year="+cal.year+qstring).then(response => response.json()).then(data => {
+		for(let i = 1; i < 32; i++) {
+			let ok = false;
+			for(let j in data) {
+				if(data[j] == i) {
+					ok = true;
+					break;
+				}
+			}
+			if(ok == false) {
+				cal.disableDate(new Date(cal.year, cal.getCurrentMonth().month-1, i));
+			}
+		}
+	}).catch(error => console.log(error));
+	await cal.drawCalendar();
+}
+
+async function load_hour_form() {
+	if(selected_dates.length < 1) {
+		alert("Must choose at least a date!");
+		return;
+	}
+
+
+	specializareForm.style["display"] = "none";
+	calendarForm.style["display"] = "none";
+	doctorForm.style["display"] = "none";
+
 	hourSelect.textContent = '';
-	
-	var qstr = "?";
-	
-	if(selected_doctor!=-1) qstr.concat(selected_doctor);
-	if(selected_dates.length > 0) qstr.concat("&dates=").concat(selected_dates.map(d => [d.getDate(), d.getMonth(), d.getFullYear()].join("-")).join(","));
-	make_option(hourSelect, "any", "Any hour");
-	for (let i = 7; i <= 20; i++) {
-		let current = make_option(hourSelect, i+":00", i+":00");
-		if (prevoius_selection == current.value) {
-			current.selected = true;
-		}
-		make_option(hourSelect, i+":30", i+":30");
-		if (prevoius_selection == current.value) {
-			current.selected = true;
-		}
+
+	var qstring = '';
+	if(doctorSelect.value > -1) {
+		qstring = '&doctor='+doctorSelect.value;
+	}
+	else if(specializareSelect.value > -1) {
+		qstring = qstring.concat('&specialisation='+specializareSelect.value);
 	}
 
-	/*fetch("/program-info" + qstr)
+	var flag = false;
+
+	selected_dates = selected_dates.sort();
+
+	for(let i in selected_dates) {
+		console.log(selected_dates[i]);
+		await fetch("/program-info/hours?day="+selected_dates[i].getDate()+"&month="+cal.getCurrentMonth().month+"&year="+cal.year+qstring)
 		.then((response) => response.json())
 		.then((data) => {
-			
-			hourSelect.textContent = '';
-
-			if (data.length > 0) {
-				make_option(hourSelect, 0, "Any hour");
-
-				//data.forEach((specializare) => make_option(hourSelect, , ));
-				for (let i = 7; i <= 20; i++) {
-					make_option(hourSelect, i+":00", i+":00");
-					make_option(hourSelect, i+":30", i+":30");
+			console.log(data);
+			if (data.length > 0 && !(data.length == 1 && data[0] === "")) {
+				if(data.length > 1 && flag == false) {
+					make_option(hourSelect, -2, "Any time");
+					flag = true;
 				}
-			} else {
-				make_option(hourSelect, -1, "No hours available");
+				console.log("Data: "+data)
+				for(let j in data) {
+					make_option(hourSelect, selected_dates[i].getDate()+"-"+cal.getCurrentMonth().month+"-"+cal.year+" "+data[j], selected_dates[i].getDate()+"-"+cal.getCurrentMonth().month+"-"+cal.year+" "+data[j]);
+				}
 			}
 		})
 		.catch((error) => {
 			console.log(error);
+			hourSelect.innerHTML = '';
 			make_option(hourSelect, -1, "No hours available");
-		});
-
-		for(let i = 0; i < hourSelect.options.length; i++) {
-			if (hourSelect.options[i].value == prevoius_selection) {
-				hourSelect.options.selectedIndex = i;
-				hourSelect.options[i].selected = true;
-				break;
-			}
-		}*/
-		hourSelect.selectedIndex = 0;
-		console.log('Ran ' + 'hour')
-	}
-}
-
-
-//Not used yet
-var update_matrix = {
-	//what to update
-	"doctor": {
-		//what just updated
-		"specializare": function() {
-			
-		},
-		"dates": function() {
-			var myBody = {doctor:getSelectedDoctor()};
-			if (myBody.doctor == -1) myBody = null;
-			console.log(myBody);
-			fetch("/program-info?month="+cal.getCurrentMonth(), {method:"GET", body:myBody}).then(response => response.json()).then(data => {
-				
-			}).catch(error => console.log(error));
-		},
-		"hour": function() {
-			
-		},
-	},
-	"specializare": {
-		//what just updated
-		"doctor": function() {
-			
-		},
-		"dates": function() {
-			
-		},
-		"hour": function() {
-			
-		}
-	},
-	"dates": {
-		//what just updated
-		"doctor": function() {
-			
-		},
-		"specializare": function() {
-			
-		},
-		"hour": function() {
-			
-		}
-	},
-	"hour": {
-		//what just updated
-		"doctor": function() {
-			
-		},
-		"specializare": function() {
-			
-		},
-		"dates": function() {
-			
-		}
-	}
-}
-
-function update_event(func) {
-	var e = document.getElementById(func);
-	if(func in update_funcs) {
-		eval('selected_'+func+' = e.options[e.selectedIndex].value;');
-		console.log('selected_'+func+' '+eval('selected_'+func))
+			flag = true;
+		});		
 	}
 
-	console.log(func + " chosen");
-	for( i in update_funcs) {
-		if (i != func) {
-			update_funcs[i]();
-			console.log('Ran ' + i)
-		}
+	if(flag == false){
+		hourSelect.innerHTML = '';
+		make_option(hourSelect, -1, "No hours available");
 	}
-	//update_funcs[func]();
-}
-
-
-var cal = new calendar(document.getElementById('calendar'), {
-	onDayClick: function (date, evts) {
-		if (!!selected_dates.find(d => d.getTime() === date.getTime())) {
-			cal.unselectDate(date);
-			selected_dates = selected_dates.filter(d => d.getTime() !== date.getTime());
-		} else {
-			cal.selectDate(date);
-			selected_dates.push(date);
-		}
-		console.log(selected_dates);
-		update_event('calendar')
-	},
-	onMonthChanged: function () {
-		for (let i = 0; i < selected_dates.length; i++) {
-			cal.selectDate(selected_dates[i]);
-		}
-	}
-});
-
-//WATCHES selected_dates, selected_doctors, selected_hours, selected_section
-for( i in update_funcs) {
-	update_funcs[i]();
+	
+	hourForm.style["display"] = "block";
+	console.log('Ran ' + 'hour')
 }
 
 function submit_form() {
@@ -271,14 +252,23 @@ function submit_form() {
 		acc.push([current_date.getDate(),current_date.getMonth()+1,current_date.getFullYear()].join('-'));
 		return acc;
 	},[]);
-	// var request;
-	// if(dates_to_str.length > 0) request["dates"] = dates_to_str;
-	// if(selected_specializare != -1) request["specializare"] = selected_specializare;
-	// if(selected_doctor != -1) request["doctor"] = selected_doctor;
-	// if(selected_hour != -1) request["hour"] = selected_hour;
-	//body:JSON.stringify(request)
+	var request = {};
+	if(dates_to_str.length > 0) request.dates = dates_to_str;
+	if(specializareSelect.value != -1) request.specializare = specializareSelect.value;
+	if(doctorSelect.value != -1) request.doctor = doctorSelect.value;
+	if(hourSelect.value != -1) {
+		if(hourSelect.value == -2) {
+			selected_hour = hourSelect.options[1].value;
+		} else {
+			selected_hour = hourSelect.value;
+		}
+		request.hour = selected_hour.split(" ")[1];
+		request.dates = [selected_hour.split(" ")[0]];
+	}
 	
-	var request = {"dates":dates_to_str, "specializare": selected_specializare,"doctor":selected_doctor, "hour":selected_hour};
+	console.log(request);
+	
+	//var request = {dates:dates_to_str, specializare: selected_specializare,doctor:selected_doctor, hour:selected_hour};
 	
 	fetch('/appointments/'+myCookie, {method:"POST", headers: new Headers({'content-type': 'application/json'}),body:JSON.stringify(request)})
 		.then((response) => {
@@ -289,7 +279,6 @@ function submit_form() {
 			response.json();
 		})
 		.then((data) => {
-			alert("success");
 			window.location.href = '/your_appointments.html';
 		})
 		.catch((error) => {
