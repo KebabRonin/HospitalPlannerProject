@@ -783,13 +783,13 @@ public class WebController {
                             @RequestParam("email") String email,
                             @RequestParam("image") MultipartFile image) {
         try {
-            List<Integer> ids = DoctorDAO.findIdsList(firstName,lastName,phone,email);
-            for(Integer id_doctor : ids){
-                int id_specializare = SpecializareDAO.findIdSpecializareByDoctorId(id_doctor);
-                if(id_specializare == specialization){
-                    return "Doctor already exists.";
-                }
-            }
+//            List<Integer> ids = DoctorDAO.findIdsList(firstName,lastName,phone,email);
+//            for(Integer id_doctor : ids){
+//                int id_specializare = SpecializareDAO.findIdSpecializareByDoctorId(id_doctor);
+//                if(id_specializare == specialization){
+//                    return "Doctor already exists.";
+//                }
+//            }
 
             String fileName = image.getOriginalFilename();
             if(Objects.equals(phone, "")){

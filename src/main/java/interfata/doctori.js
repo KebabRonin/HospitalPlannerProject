@@ -29,6 +29,12 @@ function fetchDoctorsInfo(){
 
     if (data.length > 0) {
       data.forEach((doctor) => {
+        if(doctor.email === null){
+          doctor.email = "Not added";
+        }
+        if(doctor.nr_telefon === null){
+          doctor.nr_telefon = "Not added";
+        }
         const row = document.createElement("tr");
         row.innerHTML = `
           <td><img src="${getDoctorImage(doctor.image)}" alt="Doctor Image"></td>
@@ -502,9 +508,19 @@ function editDoctorForm(doctor) {
   document.getElementById("form-title").textContent = "Edit Doctor";
   document.getElementById("doctor-first-name").value = doctor.nume;
   document.getElementById("doctor-last-name").value = doctor.prenume;
-  document.getElementById("doctor-phone").value = doctor.nr_telefon;
-  document.getElementById("doctor-email").value = doctor.email;
-
+  if(doctor.nr_telefon === "Not added"){
+    document.getElementById("doctor-phone").value = "";
+  }
+  else{
+    document.getElementById("doctor-phone").value = doctor.nr_telefon;
+  }
+  if(doctor.email === "Not added"){
+    document.getElementById("doctor-email").value = "";
+  }
+  else{
+    document.getElementById("doctor-email").value = doctor.email;
+  }
+  
   if(doctor.id_cabinet != null){
     document.getElementById("doctor-cabinet").value = doctor.id_cabinet;
   }
@@ -1143,6 +1159,7 @@ getDoctorInfo(id_doctor)
   .then((doctor) => {
     const shiftsTitle = document.createElement("h1");
     shiftsTitle.textContent = `Shifts of Dr. ${doctor.nume} ${doctor.prenume}`;
+    shiftsList.textContent="";
     shiftsList.appendChild(shiftsTitle);
 
     fetch(`/doctor-shifts/${id_doctor}`)
@@ -1362,7 +1379,7 @@ function resetShiftForm() {
   document.getElementById("shift-start-hour").value = "-1";
   document.getElementById("shift-end-hour").value = "-1";
   console.log(selected_dates[0]);
-  cal.unselectDate(selected_dates[0]);
+  cal.clearSelection();
   selected_dates = [];
   console.log(selected_dates);
 
